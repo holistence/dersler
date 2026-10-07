@@ -6,5 +6,6 @@ Prof. Dr. Mehmet Şahin — etkileşimli haftalık çalışma sayfaları.
 - [Medya Ekonomisi](medya-ekonomisi/)
 - [Enerji Kaynakları, Yatırımı ve Yönetimi](enerji-yonetimi/)
 - [Sürdürülebilir Kalkınma](surdurulebilir-kalkinma/)
+- [Proje Yönetimi](proje-yonetimi/)
 
 Yayın: GitHub Pages (main dalı, kök klasör). Haftalar `courses` çalışma alanındaki `build.py` ile üretilir; `assets/ders.js` ortak motordur, her hafta yalnızca `icerik.js` dosyasından oluşur.

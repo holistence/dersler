@@ -51,5 +51,21 @@
   ["Sürdürülebilir kalkınma, yeşil ve mavi ekonomi, vaka çalışması","s. 168–179"]]},
 {"code":"SK","slug":"surdurulebilir-kalkinma","name":"Sürdürülebilir Kalkınma","src":"Temel kaynak: J. D. Sachs, Sürdürülebilir Kalkınma Çağı",
  "weeks":[
-  ["Sürdürülebilir kalkınmaya giriş","Bölüm 1"],["Ekonomik büyümenin kısa tarihi",""],["Küresel eşitsizlik",""],["Aşırı yoksulluk",""],["Kalkınmanın coğrafyası",""],["Gezegen sınırları",""],["Sosyal kapsayıcılık",""],["Sağlık",""],["Eğitim",""],["Gıda güvenliği",""],["Sürdürülebilir şehirler",""],["İklim değişikliği",""],["Biyoçeşitlilik ve ekosistemler",""],["SKA'ların finansmanı ve yönetişimi",""]]}
+  ["Sürdürülebilir kalkınmaya giriş","Bölüm 1"],["Ekonomik büyümenin kısa tarihi",""],["Küresel eşitsizlik",""],["Aşırı yoksulluk",""],["Kalkınmanın coğrafyası",""],["Gezegen sınırları",""],["Sosyal kapsayıcılık",""],["Sağlık",""],["Eğitim",""],["Gıda güvenliği",""],["Sürdürülebilir şehirler",""],["İklim değişikliği",""],["Biyoçeşitlilik ve ekosistemler",""],["SKA'ların finansmanı ve yönetişimi",""]]},
+{"code":"PY","slug":"proje-yonetimi","name":"Proje Yönetimi","src":"Özgün ders içeriği · Temel kaynaklar: PMI, PMBOK Kılavuzu (7. baskı, 2021) ve Scrum Rehberi (2020)",
+ "weeks":[
+  ["Proje ve proje yönetimine giriş", "Temel kavramlar"],
+  ["Yaşam döngüsü, süreç grupları ve yaklaşımlar", "Öngörücü, çevik, hibrit"],
+  ["Proje fikri, ihtiyaç analizi ve proje seçimi", "Sorun ağacı, SMART, puanlama"],
+  ["Proje başlatma: başlatma belgesi ve paydaş analizi", "Charter, güç–ilgi matrisi"],
+  ["Kapsam yönetimi ve İş Kırılım Yapısı", "Gereksinimler, İKY, kapsam kayması"],
+  ["Zaman I: faaliyetler, bağımlılıklar ve süre tahmini", "Ağ diyagramı, PERT"],
+  ["Zaman II: kritik yol, Gantt şeması ve sıkıştırma", "KYY, bolluk"],
+  ["Maliyet tahmini ve bütçe", "Tahmin yöntemleri, yedek akçe"],
+  ["Risk yönetimi", "Olasılık–etki, beklenen parasal değer"],
+  ["Kaynaklar, ekip ve iletişim", "RACI, Tuckman, iletişim planı"],
+  ["Kalite ve tedarik yönetimi", "Kalite maliyeti, sözleşme türleri"],
+  ["İzleme ve kontrol: kazanılmış değer", "PV, EV, AC, CPI, SPI"],
+  ["Çevik proje yönetimi: Scrum ve Kanban", "Scrum Rehberi 2020"],
+  ["Kapanış, öğrenilen dersler ve proje önerisi yazımı", "Mantıksal çerçeve"]]}
 ]}
