@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enerji Güvenliğinin Dört Temel Boyutu (4A)</title>
+<link rel="stylesheet" href="../lib/engine.css">
+<link rel="expect" href="#bar" blocking="render"><!-- hold the first frame until the player exists, so the page transition can run -->
+</head>
+<body>
+<script src="../lib/engine.js"></script>
+<script src="../lib/fourA.js"></script>
+<script src="audio/tr/timings.js"></script>
+<script>
+'use strict';
+const CHAPTER = { number: 1, title: 'Enerji Güvenliğinin Dört Temel Boyutu (4A)', minutes: 6, language: 'tr' };
+
+/* ---------- chapter drawing helpers ---------- */
+const [AV, AC, AP, AF] = FOUR_A.map(a => a.color);
+const INK = COL.chalk, DIM = COL.dim, RED = CORE_RED;
+const say = (p, str, x, y, t0, { size = 30, fill = INK, anchor = 'middle', weight = 500 } = {}) => {
+  const e = T(p, str, { x, y, size, fill, anchor, weight, o: 0 }); show(e, t0); return e;
+};
+// a tile that slides up into place as it is named
+const tileIn = (p, i, x, y, t0, opt = {}) => { const g = aTile(p, i, { x, y: y + 24, o: 0, ...opt }); tw(g, { o: 1, y }, t0, .6, out); return g; };
+const check = (p, x, y, ok, t0, r = 22) => {      // a ✓ or ✗ badge
+  const g = G(p, { x, y, s: .3, o: 0 });
+  mk('circle', { r, fill: ok ? COL.good : RED }, g);
+  path(g, ok ? `M${-r * .45} 0L${-r * .1} ${r * .35}L${r * .5} ${-r * .35}` : `M${-r * .38} ${-r * .38}L${r * .38} ${r * .38}M${r * .38} ${-r * .38}L${-r * .38} ${r * .38}`,
+    { stroke: '#fff', 'stroke-width': r * .22 });
+  pop(g, t0); return g;
+};
+// a short labelled tag (a barrier, a constraint)
+const tag = (p, str, x, y, color, t0, { size = 24, o = 0 } = {}) => {
+  const g = G(p, { x, y, o, s: .6 });
+  const box = mk('rect', { y: -size, height: size * 1.75, rx: size * .875, fill: '#fff', stroke: color, 'stroke-width': 3 }, g);
+  const t = T(g, str, { y: size * .32, size, weight: 700, fill: color, anchor: 'middle' });
+  const w = (t.getComputedTextLength() || str.length * size * .6) + 36;
+  box.setAttribute('x', -w / 2); box.setAttribute('width', w);
+  if (t0 !== undefined) pop(g, t0);
+  return g;
+};
+const ground = p => {   // a soil cross-section: surface at y 330
+  mk('rect', { x: 80, y: 330, width: 860, height: 440, rx: 18, fill: '#e9dcc4' }, p);
+  path(p, 'M80 430C300 410 600 450 940 425', { stroke: '#d8c7a6', 'stroke-width': 3 });
+  path(p, 'M80 540C320 560 640 520 940 548', { stroke: '#d8c7a6', 'stroke-width': 3 });
+  path(p, 'M80 330H940', { stroke: '#9b8463', 'stroke-width': 5 });
+};
+const derrick = (p, x, y) => {   // a drilling tower standing on (x, y)
+  const g = G(p, { x, y });
+  const l = { stroke: INK, 'stroke-width': 5 };
+  path(g, 'M-42 0L0 -170L42 0M-30 -50H30M-20 -95H20M-10 -135H10M-34 -30L22 -75M34 -30L-22 -75', l);
+  return g;
+};
+const city = (p, x, y, lit) => {  // a small skyline with windows, standing on (x, y)
+  const g = G(p, { x, y });
+  const blocks = [[-120, 120, 60], [-56, 190, 70], [20, 150, 56], [82, 100, 52]];
+  const wins = [];
+  blocks.forEach(([bx, h, w]) => {
+    mk('rect', { x: bx, y: -h, width: w, height: h, fill: '#33415e' }, g);
+    for (let r = -h + 18; r < -14; r += 30) for (let c = bx + 12; c < bx + w - 12; c += 20) {
+      wins.push(mk('rect', { x: c, y: r, width: 9, height: 14, fill: lit ? '#ffd76a' : '#56627d' }, g));
+    }
+  });
+  g._wins = wins;
+  return g;
+};
+const plant = (p, x, y) => {     // a power plant on (x, y) with a chimney at its right
+  const g = G(p, { x, y });
+  mk('rect', { x: -140, y: -120, width: 200, height: 120, fill: '#6f7a8f' }, g);
+  path(g, 'M-140 -120L-90 -165L-40 -120M-40 -120L10 -165L60 -120', { stroke: '#6f7a8f', 'stroke-width': 1, fill: '#6f7a8f' });
+  mk('rect', { x: 80, y: -250, width: 46, height: 250, fill: '#56627d' }, g);
+  mk('rect', { x: -110, y: -80, width: 40, height: 80, fill: '#3e4760' }, g);
+  return g;
+};
+// smoke puffs that rise forever from a chimney top: pure function of t, strength k(t) 0..1
+const smoke = (p, x, y, D, k = () => 1) => {
+  const puffs = [0, 1, 2, 3, 4, 5].map(() => { const g = G(p, { o: 0 }); mk('circle', { r: 22, fill: '#7d8597' }, g); return g; });
+  clockRun(t => puffs.forEach((g, i) => {
+    const q = ((t * .28 + i / 6) % 1), s = k(t);
+    // moved by transform only (cheaper to repaint than changing cx, cy and r), opacity rounded so still puffs are not rewritten
+    put(g, { x: x + q * 120 + Math.sin(q * 5 + i) * 10, y: y - q * 170, s: 1 + q * 2.1, o: Math.round(s * .6 * (1 - q) * 50) / 50 });
+  }), D, { tail: true });
+  return puffs;
+};
+const people = (p, x, y) => {   // three heads and shoulders, centred on (x, y)
+  const g = G(p, { x, y });
+  [[-56, 10, .85], [56, 10, .85], [0, 0, 1]].forEach(([dx, dy, s]) => {
+    const c = G(g, { x: dx, y: dy, s });
+    mk('circle', { cy: -40, r: 26, fill: '#33415e' }, c);
+    path(c, 'M-44 40C-44 -4 44 -4 44 40Z', { fill: '#33415e' });
+  });
+  return g;
+};
+const tree = (p, x, y) => {
+  const g = G(p, { x, y });
+  mk('rect', { x: -10, y: -10, width: 20, height: 60, fill: '#7a5a3a' }, g);
+  mk('circle', { cy: -50, r: 52, fill: AP }, g);
+  mk('circle', { cx: -34, cy: -18, r: 34, fill: AP }, g);
+  mk('circle', { cx: 34, cy: -18, r: 34, fill: AP }, g);
+  return g;
+};
+const house = (p, x, y) => { const g = G(p, { x, y });
+  path(g, 'M-60 0V-70L0 -120L60 -70V0Z', { fill: '#33415e' }); mk('rect', { x: -14, y: -40, width: 28, height: 40, fill: '#f8f6ef' }, g); return g; };
+const factory = (p, x, y) => { const g = G(p, { x, y });
+  path(g, 'M-80 0V-70L-40 -100V-70L0 -100V-70L40 -100V-70H80V0Z', { fill: '#33415e' }); mk('rect', { x: 50, y: -150, width: 20, height: 80, fill: '#33415e' }, g); return g; };
+const state = (p, x, y) => { const g = G(p, { x, y });
+  path(g, 'M-80 -82L0 -126L80 -82Z', { fill: '#33415e' }); mk('rect', { x: -80, y: -16, width: 160, height: 16, fill: '#33415e' }, g);
+  [-60, -30, 0, 30, 60].forEach(cx => mk('rect', { x: cx - 8, y: -76, width: 16, height: 60, fill: '#33415e' }, g)); return g; };
+const turbine = (p, x, y, D) => {
+  const g = G(p, { x, y });
+  path(g, 'M-8 0L-4 -220H4L8 0Z', { fill: '#8d97aa' });
+  const rot = G(g, { y: -220 });
+  [0, 120, 240].forEach(a => { const b = G(rot, { r: a }); path(b, 'M0 0C10 -30 8 -110 0 -130C-6 -110 -8 -30 0 0Z', { fill: '#c9cfda', stroke: '#8d97aa', 'stroke-width': 2 }); });
+  mk('circle', { cy: -220, r: 10, fill: '#56627d' }, g);
+  clockRun(t => put(rot, { r: t * 70 }), D, { tail: true });
+  return g;
+};
+const sun = (p, x, y) => { const g = G(p, { x, y });
+  mk('circle', { r: 46, fill: '#f2b33d' }, g);
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; path(g, `M${Math.cos(a) * 62} ${Math.sin(a) * 62}L${Math.cos(a) * 82} ${Math.sin(a) * 82}`, { stroke: '#f2b33d', 'stroke-width': 7 }); }
+  return g; };
+const barrel = (p, x, y) => { const g = G(p, { x, y });
+  mk('rect', { x: -60, y: -150, width: 120, height: 150, rx: 14, fill: '#3e4760' }, g);
+  path(g, 'M-60 -100H60M-60 -50H60', { stroke: '#8d97aa', 'stroke-width': 5 });
+  aIcon(g, 0, { y: -75, s: .55, color: '#f8f6ef', sw: 6 }); return g; };
+
+// a profile row the case does not speak of: no value at all (not zero), dimmed and labelled
+const unspoken = (p, pr, i, t0) => {
+  tw(pr.bars[i].fill, { o: 0 }, t0, .4); tw(pr.bars[i].row, { o: .45 }, t0, .4);
+  const g = st(pr.g), e = T(p, 'bu örnekte ele alınmıyor', { x: g.x + 300 + PROFILE_W / 2, y: g.y + i * 78 + 8, size: 21, fill: DIM, anchor: 'middle', o: 0 });
+  show(e, t0 + .2);
+};
+// the price an import-dependent country pays, 0..1 on the chart, as a function of beat time (shared by the line and the bar)
+const priceAt = (t, kick) => .42 + .1 * Math.sin(t * 1.9) + .06 * Math.sin(t * 4.3 + 1) + (t > kick ? .3 * Math.min(1, (t - kick) / .8) : 0);
+
+/* ---------- beats: [id, title, run(m, D), { ask }?] ---------- */
+const BEATS = [
+  ['intro', 'Giriş', (m, D) => {
+    const g = G(scene, { o: 0, y: 24 });
+    T(g, 'Enerjiye Genel Bakış ve Temel Kavramlar', { x: 800, y: 250, size: 28, fill: DIM, anchor: 'middle', weight: 600 });
+    T(g, 'Enerji Güvenliğinin', { x: 800, y: 350, size: 78, weight: 700, anchor: 'middle' });
+    T(g, 'Dört Temel Boyutu', { x: 800, y: 440, size: 78, weight: 700, anchor: 'middle' });
+    tw(g, { o: 1, y: 0 }, .2, 1.1, out);
+    const r = say(scene, 'Bir ülkenin enerjisi ne zaman gerçekten güvendedir?', 800, 540, m('sub'), { size: 34, fill: DIM });
+    const discs = FOUR_A.map((a, i) => {
+      const d = G(scene, { x: 380 + i * 280, y: 630, o: 0, s: .4 });
+      mk('circle', { r: 50, fill: a.color }, d); aIcon(d, i);
+      pop(d, m('sub') + 1.6 + i * .25);
+      T(d, ['Var mı?', 'Ulaşılır mı?', 'Kabul görür mü?', 'Ödenebilir mi?'][i], { y: 96, size: 28, weight: 700, fill: a.color, anchor: 'middle' });
+      return d;
+    });
+    tw(g, { o: 0, y: -24 }, D - .9, .8); hide(r, D - .9, .8); discs.forEach(d => hide(d, D - .9, .8));
+  }],
+
+  ['why', 'Neden önemli?', (m, D) => {
+    const p = panel(0);
+    const core = coreNode(p, { x: 800, y: 430, o: 0, s: .6, r: 120 });
+    pop(core, .3);
+    // what it serves: development and welfare
+    const lk = path(p, 'M680 400L470 300', { stroke: DIM, 'stroke-width': 3 }, { d: 0 });
+    const rk = path(p, 'M920 400L1130 300', { stroke: DIM, 'stroke-width': 3 }, { d: 0 });
+    draw(lk, m('kalkinma'), .5); draw(rk, m('refah'), .5);
+    const l1 = say(p, 'sürdürülebilir kalkınma', 450, 280, m('kalkinma') + .2, { anchor: 'end', size: 34, weight: 600 });
+    const l2 = say(p, 'toplumsal refah', 1150, 280, m('refah') + .2, { anchor: 'start', size: 34, weight: 600 });
+    // today and the future: one arrow under the core
+    const arr = path(p, 'M480 660H1110M1090 646L1112 660L1090 674', { stroke: INK, 'stroke-width': 4 }, { d: 0 });
+    draw(arr, 9.4, m('bugun') + .6 - 9.4, lin);
+    pulse(core, m('refah') + 2.6, 1.12);
+    const b1 = say(p, 'bugün', 480, 712, m('bugun'), { size: 30, weight: 600 });
+    const b2 = say(p, 'gelecek', 1110, 712, m('gelecek'), { size: 30, weight: 600 });
+    const away = m('dort') - .4;
+    [lk, rk, l1, l2, arr, b1, b2].forEach(e => hide(e, away, .4));
+    // four principles: four empty places around the core
+    const spots = [[440, 230], [1160, 230], [440, 650], [1160, 650]];
+    const slots = spots.map(([x, y], i) => {
+      const g = G(p, { x, y, o: 0, s: .5 });
+      mk('circle', { r: 66, fill: '#fff', stroke: FOUR_A[i].color, 'stroke-width': 4, 'stroke-dasharray': '10 9' }, g);
+      T(g, 'A', { y: 20, size: 56, weight: 800, fill: FOUR_A[i].color, anchor: 'middle', o: 1 });
+      const ln = path(p, `M${800 + (x - 800) * .3} ${430 + (y - 430) * .3}L${x - (x - 800) * .2} ${y - (y - 430) * .2}`, { stroke: FOUR_A[i].color, 'stroke-width': 3, 'stroke-dasharray': '6 8' }, { o: 0 });
+      show(ln, m('dort') + .3 + i * .25); pop(g, m('dort') + .2 + i * .25);
+      return g;
+    });
+    slots.forEach((g, i) => pulse(g, m('dortA') + .15 + i * .18, 1.18));
+    S.slots = spots;
+  }],
+
+  ['avail', 'Ulaşılabilirlik', (m, D) => {
+    const p = panel(0);
+    ground(p);
+    const res = G(p, { x: 520, y: 650, o: 0 });
+    path(res, 'M-200 0C-190 -60 -60 -78 40 -66C150 -56 210 -24 200 12C180 60 40 70 -60 62C-150 54 -206 40 -200 0Z', { fill: '#3a2f22' });
+    T(res, 'petrol', { y: 10, size: 28, weight: 600, fill: '#e9dcc4', anchor: 'middle' });
+    show(res, .3, .6);
+    const der = derrick(p, 520, 330); put(der, { o: 0 }); show(der, .3, .6);
+    const tile = tileIn(p, 0, 1230, 200, m('ulas'), { w: 420, size: 34 });
+    // "physically there": the reservoir is lit up
+    const ring = path(p, 'M310 650C320 570 470 560 560 572C680 584 740 620 730 662C710 720 560 730 460 722C360 714 304 692 310 650Z', { stroke: AV, 'stroke-width': 6 }, { d: 0 });
+    draw(ring, m('mevcut'), .9);
+    const ok1 = check(p, 1060, 360, true, m('mevcut'));
+    say(p, 'fiziksel olarak mevcut', 1100, 370, m('mevcut') + .15, { anchor: 'start', size: 32, weight: 600 });
+    // "extractable": the drill goes down to it, and the oil comes up
+    const pipe = path(p, 'M520 330V600', { stroke: INK, 'stroke-width': 8 }, { d: 0 });
+    draw(pipe, m('cikar') - .2, 1.1, out);
+    const oil = path(p, 'M520 600V330', { stroke: AV, 'stroke-width': 8 }, { d: 0 });
+    draw(oil, m('cikar') + 1.1, 1.2, lin);
+    const ok2 = check(p, 1060, 450, true, m('cikar') + .2);
+    say(p, 'çıkarılabilir', 1100, 460, m('cikar') + .35, { anchor: 'start', size: 32, weight: 600 });
+    // without it, security ends at the first step
+    const no = say(p, 'Kaynak yoksa, güvenlik ilk adımda biter.', 1240, 610, m('ilk') - .1, { size: 32, fill: RED, weight: 600 });
+    tw(res, { o: .25 }, 8.7, .8); hide(ok1, 8.9, .3); check(p, 1060, 360, false, 9.0);
+    tw(oil, { o: .1 }, 10.4, .6); tw(pipe, { o: .25 }, 10.4, .6); hide(ok2, 10.6, .3); check(p, 1060, 450, false, 10.7);
+    pulse(tile, m('ilk') + .9, 1.08);
+  }],
+
+  ['access', 'Erişilebilirlik', (m, D) => {
+    const p = panel(0);
+    const quote = say(p, '“Kaynağın varlığı tek başına yeterli değildir.”', 800, 150, m('yetmez') - .1, { size: 38, weight: 600, fill: DIM });
+    // source at the left, the consuming country at the right
+    const src = G(p, { x: 220, y: 470 });
+    mk('circle', { r: 72, fill: AV }, src); aIcon(src, 0, { s: 1.3 });
+    T(src, 'kaynak', { y: 120, size: 28, weight: 600, anchor: 'middle' });
+    const town = city(p, 1390, 560, false);
+    T(town, 'tüketici ülke', { y: 50, size: 28, weight: 600, anchor: 'middle' });
+    put(src, { o: 0 }); show(src, .3); put(town, { o: 0 }); show(town, .4);
+    hide(quote, m('eris') - .5, .4);
+    tileIn(p, 1, 800, 150, m('eris'), { w: 420, size: 34 });
+    const ROUTE = 'M300 470C450 470 480 400 640 400S880 520 1040 470S1200 470 1290 500';
+    const route = path(p, ROUTE, { stroke: AC, 'stroke-width': 10, 'stroke-dasharray': '22 16' }, { o: 0 });
+    show(route, m('eris') + .6, .6);
+    clockRun(t => route.setAttribute('stroke-dashoffset', -Math.max(0, t - m('eris')) * 30), D, { tail: true });
+    // three barriers on the way
+    const bars = [['siyasi', 600, 'siyasi engel'], ['cografi', 840, 'coğrafi engel'], ['askeri', 1080, 'askerî engel']].map(([mark, x, str]) => {
+      const g = G(p, { x, y: 455, o: 0, s: .5 });
+      if (mark === 'siyasi') { mk('rect', { x: -6, y: -110, width: 12, height: 110, fill: INK }, g); path(g, 'M0 -86H110', { stroke: RED, 'stroke-width': 16 }); path(g, 'M18 -86H36M58 -86H76', { stroke: '#fff', 'stroke-width': 16, 'stroke-linecap': 'butt' }); }
+      if (mark === 'cografi') path(g, 'M-90 10L-20 -140L20 -80L50 -110L110 10Z', { fill: '#8d7a5e' });
+      if (mark === 'askeri') { path(g, 'M0 -130L56 -110V-60C56 -20 26 0 0 10C-26 0 -56 -20 -56 -60V-110Z', { fill: RED }); path(g, 'M-24 -84L24 -36M24 -84L-24 -36', { stroke: '#fff', 'stroke-width': 9 }); }
+      T(g, str, { y: 64, size: 26, weight: 700, fill: RED, anchor: 'middle' });
+      pop(g, m(mark));
+      return g;
+    });
+    // barriers lift; energy flows and the town lights up
+    bars.forEach(g => tw(g, { o: 0, y: 400, s: .8 }, m('engelsiz'), .45));
+    tw(route, { c_stroke: AC }, m('engelsiz'), .1);
+    const flow = path(p, ROUTE, { stroke: '#ffd76a', 'stroke-width': 10, 'stroke-dasharray': '6 40' }, { o: 0 });
+    show(flow, m('engelsiz') + .3, .4);
+    clockRun(t => flow.setAttribute('stroke-dashoffset', -t * 120), D, { tail: true });
+    town._wins.forEach((w, i) => tw(w, { c_fill: '#ffd76a' }, m('engelsiz') + 1.0 + (i % 7) * .08, .3));
+  }],
+
+  ['accept', 'Kabul edilebilirlik', (m, D) => {
+    const p = panel(0);
+    tileIn(p, 2, 800, 150, m('kabul'), { w: 470, size: 34 });
+    const pl = plant(p, 800, 640); put(pl, { o: 0 }); show(pl, .3, .6);
+    mk('rect', { x: 120, y: 640, width: 1360, height: 6, rx: 3, fill: '#c9c2ae' }, p);
+    // the smoke grows heavy when the narration turns to a plant people oppose
+    const heavy = m('uzun') - 4.2;
+    smoke(p, 903, 390, D, t => t < 1 ? 0 : t < heavy ? .45 * Math.min(1, t - 1) : .45 + .55 * Math.min(1, (t - heavy) / 1.2));
+    const ppl = people(p, 330, 560); put(ppl, { o: 0 }); show(ppl, m('toplum') - .1);
+    say(p, 'toplum', 330, 690, m('toplum'), { size: 32, weight: 700 });
+    const tr = tree(p, 1270, 560); put(tr, { o: 0 }); show(tr, m('cevre') - .1);
+    say(p, 'çevre', 1270, 690, m('cevre'), { size: 32, weight: 700 });
+    // both must say yes: a question mark on each, then a no once harm and opposition are said
+    const q1 = say(p, '?', 330, 440, m('cevre') + .6, { size: 64, weight: 800, fill: AP });
+    const q2 = say(p, '?', 1270, 440, m('cevre') + .8, { size: 64, weight: 800, fill: AP });
+    hide(q1, heavy, .3); hide(q2, heavy + .2, .3);
+    check(p, 330, 420, false, heavy + .2, 30); check(p, 1270, 420, false, heavy + .5, 30);
+    say(p, 'kabul görmeyen bir santral → uzun vadede güvenli değil', 800, 760, m('uzun'), { size: 32, weight: 600, fill: RED });
+  }],
+
+  ['afford', 'Karşılanabilirlik', (m, D) => {
+    const p = panel(0);
+    const tile = tileIn(p, 3, 800, 150, m('karsi'), { w: 440, size: 34 });
+    // a price tag over three payers
+    const tg = G(p, { x: 800, y: 300, o: 0, s: .5 });
+    path(tg, 'M-150 -50H110L160 0L110 50H-150Z', { fill: '#fff', stroke: AF, 'stroke-width': 5 });
+    mk('circle', { cx: 120, r: 9, fill: AF }, tg);
+    const ptxt = T(tg, 'enerji fiyatı', { x: -20, y: 11, size: 32, weight: 700, fill: AF, anchor: 'middle' });
+    pop(tg, m('karsi') + 1.2);
+    // first out of reach: high above the payers, the price in red
+    const hi = G(p, { x: 990, y: 262, o: 0 });
+    T(hi, '↑ erişilemez fiyat', { size: 30, weight: 700, fill: RED });
+    tw(tg, { y: 252 }, m('karsi') + 2.4, .9, out); show(hi, m('karsi') + 2.8);
+    tw(ptxt, { c_fill: RED }, m('karsi') + 2.4, .5);
+    // then it comes down to where all three can pay
+    tw(tg, { y: 330 }, m('fiyat') - .4, .8, back); hide(hi, m('fiyat') - .4, .4); tw(ptxt, { c_fill: AF }, m('fiyat'), .4);
+    const who = [['birey', 'bireyler', 440, house], ['isletme', 'işletmeler', 800, factory], ['devlet', 'devletler', 1160, state]];
+    who.forEach(([mark, str, x, f]) => {
+      const g = f(p, x, 620); put(g, { o: 0, y: 650 }); tw(g, { o: 1, y: 620 }, m(mark) - .1, .4, out);
+      say(p, str, x, 680, m(mark), { size: 30, weight: 700 });
+      const ln = path(p, `M${800 + (x - 800) * .2} 385L${x} 470`, { stroke: AF, 'stroke-width': 3, 'stroke-dasharray': '6 8' }, { o: 0 });
+      show(ln, m('fiyat'));
+      check(p, x + 90, 520, true, m('fiyat') + .3 + (x - 440) / 1500);
+    });
+    pulse(tg, m('fiyat') + 2.4, 1.1);
+    say(p, 'karşılanabilir fiyat', 990, 340, m('fiyat') + .2, { anchor: 'start', size: 30, weight: 700, fill: AF });
+    // with the fourth, the four are complete: all four tiles around the core
+    const g4 = G(p, { o: 0 });
+    const done = m('tamam') - .6;
+    [...p.children].forEach(e => { if (e !== g4 && e !== tile) hide(e, done, .4); });
+    tw(tile, { o: 0 }, done, .4);
+    coreNode(g4, { x: 800, y: 440, r: 100 });
+    S.slots.forEach(([x, y], i) => aTile(g4, i, { x: x + (x < 800 ? -60 : 60), y: y + (y < 450 ? -20 : 20), w: 400, size: 30 }));
+    show(g4, done + .3, .6);
+    pulse(g4.children[0], m('tamam') + .6, 1.1);
+  }],
+
+  ['q1', 'Kısa kontrol', () => {
+    const p = panel(0);
+    FOUR_A.forEach((a, i) => aTile(p, i, { x: 230 + i * 380, y: 80, w: 350, size: 26 }));
+  }, { ask: done => quiz({ x: 100, y: 150, w: 1400, cls: 'side', maxH: 600 }, [{
+    id: 'c-match', prompt: ['Her durum, en çok hangi boyutu sarsar?'],
+    build: grid([
+      { parts: ['Bir boru hattı, savaşın sürdüğü bir bölgeden geçiyor.'], ans: ['access'], why: 'Kaynak var, ama ona askerî bir engel nedeniyle ulaşılamıyor: erişilebilirlik.' },
+      { parts: ['Ülkenin kanıtlanmış rezervleri birkaç yıl içinde tükenecek.'], ans: ['avail'], why: 'Kaynağın kendisi azalıyor: ulaşılabilirlik.' },
+      { parts: ['Halk, kıyıya kurulacak yeni bir kömür santraline karşı çıkıyor.'], ans: ['accept'], why: 'Toplum ve çevre onay vermiyor: kabul edilebilirlik.' },
+      { parts: ['Doğal gaz faturası, birçok hanenin bütçesini aşıyor.'], ans: ['afford'], why: 'Fiyat bireyler için ödenebilir değil: karşılanabilirlik.' },
+    ], FOUR_A.map(a => [a.key, a.name, a.color]), { multi: false, text: true }),
+  }], done) }],
+
+  ['ideal', 'İdeal: kesişim', (m, D) => {
+    const p = panel(0);
+    const C = [[690, 340], [910, 340], [690, 560], [910, 560]];
+    const circ = C.map(([x, y], i) => {
+      const c = mk('circle', { cx: x, cy: y, r: 190, fill: FOUR_A[i].color, 'fill-opacity': .16, stroke: FOUR_A[i].color, 'stroke-width': 5 }, p);
+      put(c, { o: 0 }); show(c, .3 + i * .35, .6);
+      return c;
+    });
+    const L = [[470, 150, 'end'], [1130, 150, 'start'], [470, 770, 'end'], [1130, 770, 'start']];
+    L.forEach(([x, y, a], i) => say(p, FOUR_A[i].name, x, y, .45 + i * .35, { anchor: a, size: 30, weight: 700, fill: FOUR_A[i].color }));
+    // the intersection: the one place inside all four
+    const hot = G(p, { x: 800, y: 450, o: 0, s: .3 }), beat = G(hot);   // pop the outer group, breathe the inner one
+    mk('circle', { r: 58, fill: RED }, beat);
+    T(beat, 'İDEAL', { y: 9, size: 26, weight: 800, fill: '#fff', anchor: 'middle' });
+    pop(hot, m('kesisim') + .4);
+    clockRun(t => put(beat, { s: t > m('kesisim') + 1 ? 1 + .05 * Math.sin((t - m('kesisim') - 1) * 3) : 1 }), D, { tail: true });
+    // not only abundance
+    const no = G(p, { x: 220, y: 450, o: 0 });
+    T(no, 'yalnızca', { y: -20, size: 30, weight: 600, fill: DIM, anchor: 'middle' });
+    T(no, 'kaynak bolluğu değil', { y: 22, size: 30, weight: 700, anchor: 'middle' });
+    path(no, 'M-150 50H150', { stroke: RED, 'stroke-width': 4 });
+    show(no, 9.0);
+    // a holistic approach: three sides
+    [['ekonomik', 350], ['cevresel', 450], ['jeopolitik', 550]].forEach(([mk_, y], i) => {
+      const str = ['ekonomik', 'çevresel', 'jeopolitik'][i];
+      tag(p, str, 1380, y, [AF, AP, AC][i], m(mk_), { size: 28 });   // ekonomik: fiyat, çevresel: kabul, jeopolitik: erişim
+    });
+    circ.forEach((c, i) => tw(c, { 'a_fill-opacity': .24 }, m('ekonomik') + i * .15, .4));
+  }],
+
+  ['fossil', 'Fosil yakıtlar', (m, D) => {
+    const p = panel(0);
+    header(p, 'Denge: 4A profili', .3, 640, 150);
+    const pr = aProfile(p, '', [.5, .5, .5, .5], { x: 640, y: 290, o: 0 });
+    show(pr.g, .3, .6);
+    // the case: a barrel with a chimney's smoke over it
+    const bar = barrel(p, 330, 620); put(bar, { o: 0 }); show(bar, m('fosil') - .2);
+    say(p, 'Fosil yakıtlar', 330, 690, m('fosil'), { size: 34, weight: 700 });
+    smoke(p, 310, 470, D, t => t < m('cevre') ? 0 : Math.min(1, (t - m('cevre')) / 1.2));
+    // what the book says, bar by bar; the others stay unspoken (dimmed)
+    unspoken(p, pr, 1, m('fosil')); unspoken(p, pr, 3, m('fosil'));
+    pr.set(0, .9, m('rezerv'), 1.2, out);
+    say(p, 'geniş rezervler', 1340, 300, m('rezerv') + 1.2, { anchor: 'end', size: 24, weight: 700, fill: '#fff' });
+    pulse(pr.bars[0].row, m('rezerv') + 3.1, 1.06);
+    pr.set(2, .15, m('kabul'), 1, out);
+    tag(p, 'ciddi sorun', 1180, 446, RED, m('kabul') + .6);
+  }],
+
+  ['renew', 'Yenilenebilir kaynaklar', (m, D) => {
+    const p = panel(0);
+    const pr = aProfile(p, '', [.5, .5, .5, .5], { x: 640, y: 290 });
+    header(p, 'Denge: 4A profili', 0, 640, 150);
+    unspoken(p, pr, 0, .3); unspoken(p, pr, 3, .3);
+    const tb = turbine(p, 300, 640, D); put(tb, { o: 0 }); show(tb, .3);
+    const sn = sun(p, 470, 300); put(sn, { o: 0 }); show(sn, .5);
+    say(p, 'Yenilenebilir kaynaklar', 330, 700, .4, { size: 34, weight: 700 });
+    pr.set(2, .88, m('kabul'), 1.2, out);
+    say(p, 'çevre dostu', 1330, 455, m('kabul') + 1.2, { anchor: 'end', size: 24, weight: 700, fill: '#fff' });
+    tag(p, 'teknolojik kısıt', 160, 210, RED, m('teknolojik'));
+    tag(p, 'coğrafi kısıt', 160, 300, RED, m('cografi'));
+    pr.set(1, .32, m('eris'), 1, out);
+    tag(p, 'zorluk', 1150, 368, RED, m('eris') + .6);
+  }],
+
+  ['import', 'İthalata bağımlılık', (m, D) => {
+    const p = panel(0);
+    // the country and the energy it buys from abroad
+    const land = G(p, { x: 300, y: 650, o: 0 });
+    path(land, 'M-150 -40C-130 -90 -40 -110 40 -90C120 -80 160 -30 140 20C120 70 20 80 -60 70C-140 60 -170 10 -150 -40Z', { fill: '#cfd6e2', stroke: INK, 'stroke-width': 3 });
+    T(land, 'ithalatçı ülke', { y: 10, size: 26, weight: 700, anchor: 'middle' });
+    show(land, .3);
+    const imp = path(p, 'M40 450C120 470 160 520 190 570M172 548L192 572L198 540', { stroke: DIM, 'stroke-width': 7 }, { d: 0 });
+    draw(imp, m('ithalat') + .2, .8);
+    say(p, 'ithal enerji', 40, 430, m('ithalat') + .4, { anchor: 'start', size: 26, weight: 600, fill: DIM });
+    // the global price over time: chart at left top
+    const X0 = 560, X1 = 1200, Y0c = 520, H = 330;
+    path(p, `M${X0} ${Y0c - H}V${Y0c}H${X1}`, { stroke: INK, 'stroke-width': 3 });
+    T(p, 'küresel fiyat', { x: X0, y: Y0c - H - 18, size: 26, weight: 700 });
+    T(p, 'zaman →', { x: X1, y: Y0c + 34, size: 22, fill: DIM, anchor: 'end' });
+    const line = path(p, '', { stroke: RED, 'stroke-width': 5 });
+    // the bill and affordability come from the same price
+    T(p, 'karşılanabilirlik', { x: 1300, y: Y0c - H - 18, size: 26, weight: 700, fill: AF });
+    mk('rect', { x: 1320, y: Y0c - H, width: 70, height: H, rx: 12, fill: '#e6e3da' }, p);
+    const fill = mk('rect', { x: 1320, y: Y0c - H, width: 70, height: H, rx: 12, fill: AF }, p);
+    const t0 = m('ithalat') + 1.4, kick = m('kirilgan') + .3, span = D - t0 + 1.2;
+    const bill = G(p, { x: 560, y: 640, o: 0 });
+    mk('rect', { x: 0, y: -50, width: 300, height: 130, rx: 14, fill: '#fff', stroke: INK, 'stroke-width': 3 }, bill);
+    T(bill, 'aylık enerji faturası', { x: 20, y: -12, size: 24, weight: 600, fill: DIM });
+    const amt = T(bill, '', { x: 20, y: 50, size: 44, weight: 800 });
+    show(bill, t0 - .3);
+    const lab = say(p, 'kırılgan', 1355, Y0c + 50, kick + .5, { size: 28, weight: 800, fill: RED });
+    clockRun(t => {
+      const tt = Math.max(0, t - t0), n = Math.max(2, Math.floor(tt * 12));
+      let d = '';
+      for (let i = 0; i <= n; i++) { const ti = t0 + i / 12, x = X0 + (ti - t0) / span * (X1 - X0); d += (i ? 'L' : 'M') + x.toFixed(1) + ' ' + (Y0c - priceAt(ti, kick) * H).toFixed(1); }
+      line.setAttribute('d', t >= t0 ? d : '');
+      const pr = t >= t0 ? priceAt(t, kick) : .42, v = Math.max(.08, 1.25 - 1.4 * pr);   // high price → low affordability
+      fill.setAttribute('height', (v * H).toFixed(1)); fill.setAttribute('y', (Y0c - v * H).toFixed(1));
+      const tl = '₺' + String(Math.round(pr * 50) * 50).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');   // the bill follows the same price
+      if (amt.textContent !== tl) { amt.textContent = tl; amt.setAttribute('fill', pr > .6 ? RED : INK); }
+    }, D, { tail: true });
+  }],
+
+  ['q2', 'Kısa kontrol', () => {
+    const p = panel(0);
+    const sc = G(p, { x: 80, y: 120 });
+    T(sc, 'Bir ülke, petrolünün çoğunu tek bir dar boğazdan', { y: 0, size: 32, weight: 600 });
+    T(sc, 'geçen tankerlerle alıyor. Boğaz kapanırsa?', { y: 44, size: 32, weight: 600 });
+    S.q2 = aProfile(p, '', [.8, .8, .6, .7], { x: 80, y: 290 });
+  }, { ask: done => {
+    const pr = S.q2;
+    quiz({ x: 1000, y: 260, w: 560, cls: 'side' }, [{
+      id: 'c-strait', prompt: ['Boğaz kapanırsa hangi boyut sarsılır? Çubuğunu seç.'],
+      build: pickEls(pr.bars.map((b, i) => ({ el: b.row, box: [76, 290 + i * 78 - 34, 790, 68], label: FOUR_A[i].name })), 1,
+        'Petrol hâlâ var ve fiyatı da değişmedi; ama yolu kapandı. Bu bir erişilebilirlik sorunu.',
+        i => ['Petrol yerinde duruyor; sorun ona ulaşmakta.', '', 'Toplum ya da çevre itirazı söz konusu değil; yol kapalı.', 'Fiyat sonradan yükselebilir, ama önce kesilen şey ulaşım.'][i],
+        () => fxp(q => pr.bars[1].fill.setAttribute('width', Math.max(28, (.8 - .6 * q) * PROFILE_W)), 0, .8)),
+    }], done);
+  } }],
+
+  ['balance', 'Bütüncül çerçeve', (m, D) => {
+    const p = panel(0);
+    const pr = aProfile(p, '', [.9, .45, .3, .6], { x: 680, y: 260, o: 0 });
+    show(pr.g, .3, .6);
+    const yalniz = say(p, 'arzın sürekliliği yetmez', 330, 200, .4, { size: 30, weight: 700, fill: DIM });
+    tag(p, 'maliyet', 330, 300, AF, m('maliyet'), { size: 28 });
+    tag(p, 'çevre duyarlılığı', 330, 390, AP, m('duyarlilik'), { size: 28 });
+    tag(p, 'jeopolitik istikrar', 330, 480, AC, m('istikrar'), { size: 28 });
+    // a holistic frame: all four brought up together
+    const frame = path(p, 'M676 210H1424Q1450 210 1450 236V524Q1450 550 1424 550H676Q650 550 650 524V236Q650 210 676 210Z', { stroke: RED, 'stroke-width': 4 }, { d: 0 });
+    draw(frame, m('butuncul') - .6, 1.2);
+    say(p, 'bütüncül çerçeve', 1050, 190, m('butuncul'), { size: 28, weight: 700, fill: RED });
+    [0, 1, 2, 3].forEach(i => pr.set(i, .85, m('butuncul') + .6, 1.4));
+    hide(yalniz, m('butuncul'), .4);
+    check(p, 560, 690, true, m('buyume'));
+    say(p, 'ekonomik büyüme', 600, 700, m('buyume') + .1, { anchor: 'start', size: 30, weight: 700 });
+    check(p, 560, 770, true, m('surdur'));
+    say(p, 'toplum ve çevre için sürdürülebilir çözümler', 600, 780, m('surdur') + .1, { anchor: 'start', size: 30, weight: 700 });
+  }],
+
+  ['wrap', 'Özet', (m) => {
+    const p = panel(0);
+    T(p, 'Özet', { x: 200, y: 130, size: 44, weight: 800 });
+    const rows = [...FOUR_A.map((a, i) => [a.name, ['kaynak var ve çıkarılabilir', 'kaynağa engelsiz ulaşılır', 'toplum ve çevre onaylar', 'fiyatı ödenebilir'][i], a.color]),
+      ['Güvenlik', 'dördünün kesişiminde, dengesindedir', RED]];
+    rows.forEach(([name, str, c], i) => {
+      const g = G(p, { x: -16, y: 240 + i * 110, o: 0 });
+      mk('circle', { cx: 230, cy: -12, r: 28, fill: c }, g);
+      T(g, i < 4 ? 'A' : '★', { x: 230, y: -1, size: 30, fill: '#fff', weight: 800, anchor: 'middle' });
+      T(g, name + ':', { x: 290, size: 36, weight: 800, fill: c });
+      T(g, str, { x: 720, size: 36, weight: 500 });
+      tw(g, { o: 1, x: 0 }, m('w' + (i + 1)), .6);
+    });
+  }],
+
+  ['think', 'Düşünmek için', (m) => {
+    const p = panel(0);
+    T(p, 'Düşünmek için', { x: 200, y: 130, size: 44, weight: 800 });
+    const qs = [
+      [AC, 'Yenilenebilir kaynakların erişilebilirlik sorunlarını aşmak için', 'hangi teknolojik ve politik çözümler uygulanabilir?'],
+      [AP, 'Kabul edilebilirlik boyutu, iklim değişikliğiyle mücadelede', 'nasıl bir rol oynar?'],
+      [AF, 'İthalata bağımlı ülkelerde karşılanabilirliği korumak için', 'hangi uluslararası işbirliği modelleri öne çıkar?'],
+    ];
+    qs.forEach(([c, a, b], i) => {
+      const g = G(p, { x: 200, y: 220 + i * 170, o: 0 });
+      mk('rect', { x: 0, y: 0, width: 1200, height: 136, rx: 20, fill: '#fff', stroke: c, 'stroke-width': 3 }, g);
+      mk('circle', { cx: 64, cy: 68, r: 36, fill: c }, g);
+      T(g, '?', { x: 64, y: 82, size: 42, weight: 800, fill: '#fff', anchor: 'middle' });
+      T(g, a, { x: 124, y: 58, size: 30, weight: 600 });
+      T(g, b, { x: 124, y: 100, size: 30, weight: 600 });
+      tw(g, { o: 1, y: 200 + i * 170 }, m('r' + (i + 1)), .6, out);
+    });
+  }],
+
+  ['final1', 'Bölüm alıştırması', () => { panel(0); }, { ask: done => quiz(SCREEN, [{
+    id: 'p-gas', prompt: ['Bir ülkenin topraklarındaki kömür, jeolojik yapı yüzünden yerin altından hiçbir yolla çıkarılamıyor. Hangi boyut eksik?'],
+    build: choice([['Ulaşılabilirlik'], ['Erişilebilirlik'], ['Kabul edilebilirlik'], ['Karşılanabilirlik']], 0,
+      'Ulaşılabilirlik, kaynağın fiziksel olarak var olması ve çıkarılabilir durumda bulunmasıdır; burada kaynak çıkarılamıyor.',
+      [null, 'Erişilebilirlik, çıkarılabilen bir kaynağa siyasi, coğrafi ya da askerî engel olmadan ulaşmaktır; burada kaynak yerinden hiç çıkarılamıyor.',
+        'Kimse itiraz etmiyor; kömür çıkarılamıyor.', 'Henüz bir fiyat yok; önce kömürün çıkarılabilir olması gerekir.']),
+  }, {
+    id: 'p-fossil', prompt: ['Fosil yakıtlar, hangi iki boyut arasındaki gerilimin örneğidir?'],
+    build: choice([['Ulaşılabilirlik yüksek, kabul edilebilirlik düşük'], ['Kabul edilebilirlik yüksek, erişilebilirlik düşük'], ['Karşılanabilirlik yüksek, ulaşılabilirlik düşük']], 0,
+      'Rezervleri hâlâ geniş; ama çevresel etkileri kabul edilebilirlikte ciddi sorunlar yaratır.',
+      [null, 'Bu, yenilenebilir kaynakların durumudur: çevre dostu, ama bazen teknolojik ve coğrafi kısıtlar var.',
+        'Fosil yakıtların rezervleri geniştir; ulaşılabilirlikleri düşük değildir.']),
+  }, {
+    id: 'p-ideal', prompt: ['İdeal enerji güvenliği nerededir?'],
+    build: choice([['En büyük rezervlere sahip olmakta'], ['Dört boyutun kesişiminde'], ['En ucuz kaynağı seçmekte']], 1,
+      'Dört daire birlikte sağlandığında, kesişim noktasında: ekonomik, çevresel ve jeopolitik boyutlar birlikte.',
+      ['Kaynak bolluğu yalnızca ulaşılabilirliği sağlar; diğer üçü hâlâ eksik olabilir.', null,
+        'Ucuzluk yalnızca karşılanabilirliktir; kabul görmeyen ya da ulaşılamayan bir kaynak güvenli değildir.']),
+  }], done, 'Bölüm alıştırması') }],
+
+  ['finish', 'Bitti', () => { panel(0); }, { ask: finishCard }],
+].map(([id, title, run, extra]) => ({ id, title, run, ...extra }));
+
+boot();
+</script>
+</body>
+</html>
