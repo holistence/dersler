@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Piyasa Oyunu ve Yatırım Komitesi · Enerji Kaynakları, Yatırımı ve Yönetimi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Ders sitesiyle aynı boğaz mavisi / hardal ailesi. Tek okuma kolonu; hesap ve antrenman kutuları kolonun içinde. */
+:root{
+  --bg:#f4f6f4; --surface:#ffffff; --ink:#14232b; --muted:#5b6b70; --line:#d9e0dd;
+  --strait:#0e4a57; --strait-soft:#e2eeef; --mustard:#b98216; --mustard-soft:#f6ecd6;
+  --ok:#2f7a4b; --ok-soft:#e1f1e6; --bad:#b03a2e; --bad-soft:#f7e3e0;
+  --f-display:"Newsreader","Iowan Old Style",Georgia,serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1619; --surface:#132126; --ink:#e4ecea; --muted:#94a6a8; --line:#24363b;
+  --strait:#7cc3cf; --strait-soft:#173238; --mustard:#e2b04e; --mustard-soft:#2d2614;
+  --ok:#6fcf93; --ok-soft:#14301f; --bad:#f08a7e; --bad-soft:#3a1a16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1619; --surface:#132126; --ink:#e4ecea; --muted:#94a6a8; --line:#24363b;
+  --strait:#7cc3cf; --strait-soft:#173238; --mustard:#e2b04e; --mustard-soft:#2d2614;
+  --ok:#6fcf93; --ok-soft:#14301f; --bad:#f08a7e; --bad-soft:#3a1a16; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 var(--f-body)}
+main{max-width:780px;margin:0 auto;padding:32px 18px 80px}
+a{color:var(--strait)}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-family:var(--f-display);font-weight:500;font-size:2.3rem;line-height:1.15;margin:0 0 12px;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:500;font-size:1.55rem;line-height:1.2;margin:52px 0 10px;text-wrap:balance}
+h3{font-size:1.02rem;font-weight:600;margin:24px 0 6px}
+p{margin:0 0 14px} ul,ol{margin:0 0 14px;padding-left:22px} li{margin-bottom:6px}
+.lead{font-size:1.1rem}
+.step{font-family:var(--f-mono);font-size:.78rem;color:var(--mustard);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:2px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin:16px 0}
+.formula{background:var(--strait-soft);border-radius:10px;padding:12px 16px;font-weight:600;margin:14px 0}
+.tw{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:.93rem;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.82rem}
+td.n,th.n{text-align:right;white-space:nowrap}
+label{font-weight:600;display:block;margin-bottom:4px}
+select,input[type=number]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+select{width:100%;max-width:360px}
+input[type=number]{width:110px;text-align:right}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px}
+button.pri{background:var(--strait);color:var(--bg);border-color:var(--strait);font-weight:600}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--mustard);outline-offset:2px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.tabs button[aria-selected="true"]{background:var(--strait);color:var(--bg);border-color:var(--strait);font-weight:600}
+dl.card{display:grid;grid-template-columns:1fr auto;gap:4px 14px;margin:12px 0 0;font-size:.95rem}
+dl.card dt{color:var(--muted)} dl.card dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.fb{font-size:.9rem;font-weight:600;border-radius:999px;padding:2px 10px}
+.fb.ok{background:var(--ok-soft);color:var(--ok)} .fb.bad{background:var(--bad-soft);color:var(--bad)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:.86rem}
+.out{border-left:4px solid var(--mustard);background:var(--mustard-soft);border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0}
+.out b.big{font-family:var(--f-display);font-size:1.7rem;font-weight:500;display:block;line-height:1.2}
+.cw{overflow-x:auto} svg{display:block;width:100%;min-width:560px;height:auto}
+svg text{font-family:var(--f-body);fill:var(--ink);font-size:13px} svg .ax{fill:var(--muted);font-size:12px}
+.check li{list-style:none;margin-left:-22px;padding-left:26px;position:relative}
+.check li::before{content:"";position:absolute;left:0;top:.45em;width:14px;height:14px;border:2px solid var(--strait);border-radius:3px}
+.note{color:var(--muted);font-size:.9rem}
+textarea,input[type=text]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+textarea{min-height:84px;resize:vertical}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+.kpi div{background:var(--strait-soft);border-radius:10px;padding:10px 12px}
+.kpi span{display:block;font-size:.8rem;color:var(--muted)} .kpi b{font-family:var(--f-display);font-size:1.45rem;font-weight:500;font-variant-numeric:tabular-nums}
+pre.prev{white-space:pre-wrap;background:var(--bg);border:1px dashed var(--line);border-radius:8px;padding:12px;font:13px/1.5 var(--f-mono);max-height:260px;overflow:auto}
+.fld{margin:12px 0}
+@media (max-width:480px){h1{font-size:1.8rem}}
+@media print{:root{--bg:#fff;--surface:#fff;--ink:#000;--muted:#444;--line:#bbb;--strait:#0e4a57;--strait-soft:#eef3f3;--mustard:#8a5f0c;--mustard-soft:#f6f1e4}
+ .noprint,button,.cw,#res{display:none!important} body{font-size:11pt} h2{margin-top:22pt;break-after:avoid} .box{break-inside:avoid} a{color:#000;text-decoration:none}}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow"><a href="../">Enerji Kaynakları, Yatırımı ve Yönetimi</a> · Uygulama</p>
+<h1>Piyasa Oyunu ve Yatırım Komitesi</h1>
+<p class="lead">İki hafta boyunca bir santralin sahibi olacaksınız. Önce elektriğinizi piyasada satacak, sonra aynı santrale yatırım yapılır mı sorusunu savunacaksınız. Bu sayfa derse hazır gelmeniz için: santralinizi seçin, maliyetinizi hesaplayın, antrenman piyasasında teklif vermeyi deneyin.</p>
+
+<p class="row noprint"><button class="pri" id="btnPrint">Yönergeyi PDF olarak indir</button> <a href="Yatirim_Komitesi_Sablonu.xlsx" download>Excel şablonunu indir</a></p>
+<p class="note noprint">PDF için açılan pencerede hedef olarak "PDF olarak kaydet" seçin. Excel dosyası isteğe bağlıdır; aynı hesap bu sayfadaki yatırım hesaplayıcısında da yapılır.</p>
+<div class="tw"><table>
+<tr><th>Aşama</th><th>Ne zaman</th><th>Ne yapılır</th></tr>
+<tr><td>Ödev 1</td><td>Oturum 1'den önce</td><td>Marjinal maliyet hesabı ve teklif stratejisi; bu sayfadaki formla gönderilir</td></tr>
+<tr><td>Oturum 1</td><td>1. hafta, 2 ders saati</td><td>Gün öncesi piyasası oyunu: dört tur fiyat teklifi</td></tr>
+<tr><td>Ödev 2</td><td>Oturum 2'den önce</td><td>NBD, İVO, LCOE hesabı ve yatırım notu; bu sayfadaki formla gönderilir</td></tr>
+<tr><td>Oturum 2</td><td>2. hafta, 2 ders saati</td><td>Yatırım komitesi: savunma, sorular, bütçe oylaması</td></tr>
+</table></div>
+<p class="note">Konular: <a href="../hafta-07/">Hafta 07</a> (elektrik piyasaları, marjinal fiyatlama), <a href="../hafta-09/">Hafta 09</a> (NBD, İVO) ve <a href="../hafta-10/">Hafta 10</a> (risk). Karbon fiyatı turu <a href="../hafta-13/">Hafta 13</a>'ün ön izlemesidir.</p>
+
+<h2><span class="step">Adım 1</span>Grubunuzu ve santralinizi öğrenin</h2>
+<p>Grupları sınıf temsilcisi oluşturur: grup başına 3–4 kişi, en çok 8 grup. Listeye yalnızca iki oturuma da gelecek öğrenciler yazılır. Santraller gruplara kurayla dağıtılır; grup sayısı 8'den azsa boşta kalan santralleri dersin hocası oynar.</p>
+<div class="box">
+  <label for="plant">Santraliniz</label>
+  <select id="plant"></select>
+  <dl class="card" id="card"></dl>
+</div>
+<p class="note">Rakamlar öğretim amaçlı yaklaşık değerlerdir, gerçek santral verisi değildir.</p>
+
+<h2><span class="step">Adım 2</span>Marjinal maliyetinizi hesaplayın</h2>
+<p>Marjinal maliyet, bir megavatsaat daha üretmenin size maliyetidir. Teklifinizin tabanı budur: bunun altında satarsanız zarar edersiniz.</p>
+<p class="formula">Marjinal maliyet = yakıt fiyatı ÷ verim + değişken işletme gideri + emisyon × karbon fiyatı</p>
+<p>Yakıtı olmayan santrallerde ilk terim sıfırdır. Oyunda dört senaryo var:</p>
+<div class="tw"><table>
+<tr><th>Tur</th><th>Durum</th><th class="n">Talep (MW)</th><th class="n">Rüzgâr (MW)</th><th class="n">Güneş (MW)</th><th class="n">Gaz fiyatı ($/MWh ısıl)</th><th class="n">Karbon ($/ton)</th></tr>
+<tr><td>1</td><td>Olağan öğle saati</td><td class="n">450</td><td class="n">40</td><td class="n">45</td><td class="n">33</td><td class="n">0</td></tr>
+<tr><td>2</td><td>Rüzgârsız kış akşamı</td><td class="n">500</td><td class="n">0</td><td class="n">0</td><td class="n">33</td><td class="n">0</td></tr>
+<tr><td>3</td><td>Gaz krizi</td><td class="n">580</td><td class="n">20</td><td class="n">0</td><td class="n">49,5</td><td class="n">0</td></tr>
+<tr><td>4</td><td>Karbon fiyatı</td><td class="n">430</td><td class="n">90</td><td class="n">50</td><td class="n">33</td><td class="n">50</td></tr>
+</table></div>
+<p>Diğer santraller her turda kurulu gücünün tamamıyla üretebilir.</p>
+<div class="box">
+  <h3 style="margin-top:0">Hesabınızı sınayın</h3>
+  <p class="note">Önce kâğıt üzerinde hesaplayın, sonra sonucunuzu yazın. Sayfa yalnızca doğru ya da yanlış der; doğru rakamı göstermez.</p>
+  <div id="quiz"></div>
+  <div class="row" style="margin-top:12px"><button class="pri" id="btnCheck">Kontrol et</button></div>
+</div>
+
+<h2><span class="step">Adım 3</span>Antrenman piyasasında teklif verin</h2>
+<p>Derste her turda grubunuz tek bir fiyat teklif eder. Teklifler ucuzdan pahalıya sıralanır, talep karşılanana kadar santraller sırayla kabul edilir. <strong>Kabul edilen son santralin teklifi herkesin satış fiyatı olur.</strong> Kendi teklifiniz ne olursa olsun, kabul edildiyseniz o fiyattan satarsınız.</p>
+<p class="formula">Tur kârı = (piyasa fiyatı − marjinal maliyet) × kabul edilen MW</p>
+<div class="box">
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="chips" id="scen"></div>
+  <div class="row">
+    <div><label for="bid">Teklifiniz ($/MWh)</label><input type="number" id="bid" min="0" max="250" step="0.5"></div>
+    <button class="pri" id="btnRun" style="align-self:flex-end">Piyasayı çalıştır</button>
+  </div>
+  <p style="margin:12px 0 0"><input type="checkbox" id="strat"> <label for="strat" style="display:inline;font-weight:400">Rakipler maliyetinin üstünde teklif versin (daha gerçekçi)</label></p>
+  <div id="res"></div>
+  <div class="cw"><svg id="chart" viewBox="0 0 760 320" role="img" aria-label="Antrenman piyasası arz eğrisi"></svg></div>
+  <p class="note" style="margin:8px 0 0">Burada rakipler bilgisayardır ve teklifleri her çalıştırmada biraz değişir. Derste karşınızda arkadaşlarınız olacak ve onlar da strateji kuracak.</p>
+</div>
+<h3>Denemeniz gerekenler</h3>
+<ul>
+<li>Tam maliyetinizi teklif edin. Kabul edildiniz mi, ne kadar kazandınız?</li>
+<li>Maliyetinizin 20 dolar üstünü teklif edin. Kazancınız arttı mı, yoksa piyasanın dışında mı kaldınız?</li>
+<li>Sıfır teklif edin. Fiyat sıfır mı oldu? Neden olmadı?</li>
+<li>Dört turun hepsini deneyin. Santraliniz hangi turda fiyatı belirliyor, hangisinde dışarıda kalıyor?</li>
+</ul>
+
+<h2><span class="step">Adım 4</span>Ödev 1'i doldurup gönderin</h2>
+<p>Ödev 1 bu formla teslim edilir; kâğıt gerekmez. Grup adına tek bir kişi doldurur ve Oturum 1'den bir gün önce, saat 23.59'a kadar gönderir. Yazdıklarınız bu tarayıcıda saklanır, yarım bırakıp dönebilirsiniz.</p>
+<div class="box">
+  <div class="grid2">
+    <div><label for="o1grup">Grup numarası</label><input type="text" id="o1grup" data-save></div>
+    <div><label for="o1uye">Grup üyeleri (ad soyad, öğrenci no)</label><input type="text" id="o1uye" data-save></div>
+  </div>
+  <p class="note" style="margin-top:12px">Marjinal maliyetleriniz Adım 2'deki kutulardan alınır. Hesap adımlarını aşağıya yazın.</p>
+  <div class="fld"><label for="o1hesap">Marjinal maliyet hesabınızın adımları (dört senaryo)</label><textarea id="o1hesap" data-save></textarea></div>
+  <div id="o1bids"></div>
+  <div class="fld"><label for="o1bekle">Hangi turda en çok, hangisinde en az kazanmayı bekliyorsunuz? Neden?</label><textarea id="o1bekle" data-save></textarea></div>
+  <div class="fld"><label for="o1tahmin">Her turda fiyatı hangi santral belirler? (dört tahmin)</label><input type="text" id="o1tahmin" data-save placeholder="1. tur: …, 2. tur: …, 3. tur: …, 4. tur: …"></div>
+  <pre class="prev" id="o1prev" aria-label="Ödev 1 metni"></pre>
+  <div class="row noprint"><button class="pri" id="o1mail">E-postayla gönder</button><button id="o1copy">Metni kopyala</button><span id="o1msg" class="note" aria-live="polite"></span></div>
+  <p class="note" style="margin:10px 0 0">"E-postayla gönder" kendi e-posta programınızda hazır bir taslak açar; göndermeyi siz tamamlarsınız. Taslak açılmazsa metni kopyalayıp <span class="mailto"></span> adresine gönderin.</p>
+</div>
+
+<h2>Oturum 1'in kuralları</h2>
+<ol>
+<li>Senaryo perdeye yansıtılır.</li>
+<li>Grubunuz 3 dakika içinde teklifini verir. Süre dolunca teklif vermeyen grup o tur üretim yapmamış sayılır.</li>
+<li>Teklifle birlikte o gün sınıfta bulunan üyelerin adı bildirilir. Adı bildirilmeyen üye o oturumda yok sayılır.</li>
+<li>Teklifler girilir, piyasa kapatılır, fiyat ve kârlar perdede görünür.</li>
+</ol>
+<ul>
+<li>Kullanılabilir kapasitenizin tamamını tek fiyattan teklif edersiniz.</li>
+<li>Teklif 0 ile 250 $/MWh arasında olmalıdır. Arz talebi karşılamazsa fiyat 250'ye çıkar.</li>
+<li>Gruplar arasında teklif konuşmak ve anlaşmak yasaktır.</li>
+<li>Oturumun sonunda dört turun piyasa fiyatını not alın; Ödev 2'de kullanacaksınız.</li>
+</ul>
+
+<h2><span class="step">Adım 5</span>Ödev 2: yatırım hesabı ve yatırım notu</h2>
+<p>Oturum 1'den sonra yapılır. Santralinize yatırım yapılıp yapılmaması gerektiğini savunacaksınız. "Yatırım yapmayın" demek geçerli bir sonuçtur; not, sonucun olumlu olmasına değil gerekçenin sağlamlığına verilir.</p>
+<div class="box">
+  <h3 style="margin-top:0">Yatırım hesaplayıcısı</h3>
+  <p class="note">Kurulu güç, yatırım maliyeti, kapasite faktörü ve sabit gider Adım 1'de seçtiğiniz santralin kartından alınır. Model 20 yıl ömür, sabit fiyat ve sabit üretim varsayar; vergi ve borç yoktur.</p>
+  <div class="grid2">
+    <div><label for="yfiyat">Ortalama satış fiyatı ($/MWh)</label><input type="number" id="yfiyat" step="0.5" min="0" data-save><p class="note" style="margin:4px 0 0">Oturum 1'deki dört turun fiyat ortalaması</p></div>
+    <div><label for="ymm">Marjinal maliyet ($/MWh)</label><input type="number" id="ymm" step="0.1" min="0" data-save><p class="note" style="margin:4px 0 0">Karbon fiyatsız değeriniz</p></div>
+    <div><label for="yisk">İskonto oranı (%)</label><input type="number" id="yisk" step="0.5" min="0.5" value="10" data-save></div>
+  </div>
+  <div class="kpi" id="ykpi"></div>
+  <div class="tw"><table id="yduy"></table></div>
+</div>
+<div class="box">
+  <h3 style="margin-top:0">Yatırım notu</h3>
+  <div class="fld"><label for="o2karar">Karar (ilk cümle): yatırım yapılmalı mı?</label><input type="text" id="o2karar" data-save></div>
+  <div class="fld"><label for="o2duy">Duyarlılık yorumu: fiyat 60 $/MWh ya da iskonto %14 olunca kararınız değişiyor mu?</label><textarea id="o2duy" data-save></textarea></div>
+  <div class="fld"><label for="o2risk">Santralinize özgü üç risk ve her biri için bir önlem</label><textarea id="o2risk" data-save></textarea></div>
+  <div class="fld"><label for="o2kosul">Kararınız olumsuzsa hangi koşulda olumluya döner? (alım garantisi, kapasite ödemesi, teşvik)</label><textarea id="o2kosul" data-save></textarea></div>
+  <pre class="prev" id="o2prev" aria-label="Ödev 2 metni"></pre>
+  <div class="row noprint"><button class="pri" id="o2mail">E-postayla gönder</button><button id="o2copy">Metni kopyala</button><span id="o2msg" class="note" aria-live="polite"></span></div>
+  <p class="note" style="margin:10px 0 0">Oturum 2'den bir gün önce, saat 23.59'a kadar gönderin. Aynı hesabı Excel'de yapmak isterseniz: <a href="Yatirim_Komitesi_Sablonu.xlsx" download>Yatirim_Komitesi_Sablonu.xlsx</a></p>
+</div>
+
+<h2>Oturum 2: yatırım komitesi</h2>
+<ol>
+<li><strong>Savunma (4 dakika):</strong> kararınız, dört temel sonuç, en önemli risk. Süre dolunca söz kesilir.</li>
+<li><strong>Risk komitesi (3 dakika):</strong> sizden bir sonraki numaralı grup banka risk komitesi rolünde iki soru sorar. Siz de bir önceki grubu sorgularsınız; o santral için en az dört soru hazırlayıp gelin.</li>
+<li><strong>Bireysel soru:</strong> gruptan rastgele bir üyeye tek bir soru sorulur. Cevabı yalnızca o üye verir.</li>
+<li><strong>Oylama:</strong> her grup kendi projesi dışında üç projeye oy verir. Projeler oy sırasına göre, 500 milyon dolarlık bütçe bitene kadar fonlanır.</li>
+</ol>
+
+<h2>Puanlama</h2>
+<p>Toplam 100 puanın 70'i sınıfta kazanılır; derse gelmeyen öğrenci o oturumun sınıf içi puanını alamaz.</p>
+<div class="tw"><table>
+<tr><th>Bileşen</th><th class="n">Puan</th><th>Kime verilir</th></tr>
+<tr><td>Ödev 1</td><td class="n">15</td><td>Grup</td></tr>
+<tr><td>Oturum 1 katılımı</td><td class="n">15</td><td>O gün hazır bulunan üyeler</td></tr>
+<tr><td>Ödev 2</td><td class="n">15</td><td>Grup</td></tr>
+<tr><td>Oturum 2 savunması</td><td class="n">15</td><td>O gün hazır bulunan üyeler</td></tr>
+<tr><td>Risk komitesi soruları</td><td class="n">10</td><td>O gün hazır bulunan üyeler</td></tr>
+<tr><td>Bireysel sözlü soru</td><td class="n">30</td><td>Birey</td></tr>
+</table></div>
+<ul>
+<li>Oyundaki kâr sıralaması ve projenizin fonlanıp fonlanmaması nota etki etmez; santraller eşit şartlarda değildir.</li>
+<li>En az iki üyesi gelen grup oynar. Grubundan tek başına gelen öğrenci başka bir gruba katılır.</li>
+<li>Ödevler bu sayfadaki formlarla, dersten bir gün önce gönderilir. Geç gelen ödev kabul edilmez; çünkü ödev o günkü dersin malzemesidir.</li>
+<li>Yapay zekâ aracıyla hesabınızı kontrol edebilirsiniz. Ancak ödevinizdeki her rakamın nereden geldiğini grubun her üyesi sözlü olarak açıklayabilmelidir; notun 30 puanı buna bağlıdır.</li>
+</ul>
+<p class="note">Prof. Dr. Mehmet Şahin · Çanakkale Onsekiz Mart Üniversitesi</p>
+</main>
+
+<script>
+const CAP=250;
+const P=[
+ {id:"ruz",name:"Rüzgâr",cap:100,fuel:0,eff:1,vom:0,em:0,gas:false,capex:1.3,cf:35,fom:35,c:"#1a9e96"},
+ {id:"gun",name:"Güneş",cap:60,fuel:0,eff:1,vom:0,em:0,gas:false,capex:0.7,cf:20,fom:15,c:"#e0a100"},
+ {id:"hid",name:"Hidroelektrik",short:"Hidro",cap:80,fuel:0,eff:1,vom:3,em:0,gas:false,capex:2.0,cf:35,fom:30,c:"#2f6fd0"},
+ {id:"jeo",name:"Jeotermal",cap:40,fuel:0,eff:1,vom:5,em:0,gas:false,capex:4.0,cf:85,fom:100,c:"#a2459b"},
+ {id:"lin",name:"Linyit",cap:150,fuel:12,eff:0.35,vom:4,em:1.00,gas:false,capex:1.8,cf:70,fom:45,c:"#7a5a3c"},
+ {id:"itk",name:"İthal kömür",cap:150,fuel:15,eff:0.40,vom:4,em:0.85,gas:false,capex:1.6,cf:70,fom:40,c:"#6b7780"},
+ {id:"gaz",name:"Doğal gaz (kombine çevrim)",short:"Gaz KÇ",cap:120,fuel:33,eff:0.55,vom:3,em:0.37,gas:true,capex:0.9,cf:50,fom:20,c:"#e2702a"},
+ {id:"pik",name:"Gaz pik santrali",short:"Gaz pik",cap:60,fuel:33,eff:0.35,vom:4,em:0.55,gas:true,capex:0.5,cf:8,fom:12,c:"#c8342b"}
+];
+const R=[
+ {t:"1. Tur",h:"Olağan öğle saati",demand:450,av:{ruz:40,gun:45},gm:1,co2:0},
+ {t:"2. Tur",h:"Rüzgârsız kış akşamı",demand:500,av:{ruz:0,gun:0},gm:1,co2:0},
+ {t:"3. Tur",h:"Gaz krizi",demand:580,av:{ruz:20,gun:0},gm:1.5,co2:0},
+ {t:"4. Tur",h:"Karbon fiyatı",demand:430,av:{ruz:90,gun:50},gm:1,co2:50}
+];
+const $=id=>document.getElementById(id);
+const fmt=(n,d=0)=>n.toLocaleString("tr-TR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const avail=(p,r)=>R[r].av[p.id]!==undefined?R[r].av[p.id]:p.cap;
+const mc=(p,r)=>(p.fuel?p.fuel*(p.gas?R[r].gm:1)/p.eff:0)+p.vom+p.em*R[r].co2;
+let me=P[0], round=0;
+try{ const s=localStorage.getItem("piyasa-santral"); if(s) me=P.find(p=>p.id===s)||P[0]; }catch(e){}
+
+function clearMarket(r,bids){
+  const offers=P.map(p=>({p,q:avail(p,r),b:bids[p.id]})).filter(o=>o.q>0&&typeof o.b==="number").sort((a,b)=>a.b-b.b);
+  let rem=R[r].demand,price=0,i=0;const acc={};
+  while(i<offers.length){let j=i,tot=0;while(j<offers.length&&offers[j].b===offers[i].b){tot+=offers[j].q;j++;}
+    const take=Math.min(tot,rem);for(let k=i;k<j;k++)acc[offers[k].p.id]=offers[k].q*take/tot;if(take>0)price=offers[i].b;rem-=take;i=j;}
+  if(rem>0.001)price=CAP;
+  return{offers,acc,price};
+}
+
+function renderCard(){
+  $("plant").innerHTML=P.map((p,i)=>`<option value="${p.id}"${p===me?" selected":""}>${i+1}. ${p.name}</option>`).join("");
+  $("card").innerHTML=`<dt>Kurulu güç</dt><dd>${me.cap} MW</dd>
+   <dt>Yakıt fiyatı</dt><dd>${me.fuel?fmt(me.fuel)+" $/MWh ısıl":"Yok"}</dd>
+   <dt>Verim</dt><dd>${me.fuel?"%"+fmt(me.eff*100):"–"}</dd>
+   <dt>Değişken işletme gideri</dt><dd>${me.vom} $/MWh</dd>
+   <dt>Emisyon</dt><dd>${fmt(me.em,2)} tCO₂/MWh</dd>
+   <dt>Yatırım maliyeti</dt><dd>${fmt(me.capex,1)} milyon $/MW</dd>
+   <dt>Kapasite faktörü</dt><dd>%${me.cf}</dd>
+   <dt>Sabit işletme-bakım</dt><dd>${me.fom} $/kW-yıl</dd>`;
+}
+function renderQuiz(){
+  $("quiz").innerHTML=R.map((x,r)=>`<div class="row" style="margin:8px 0"><label for="q${r}" style="margin:0;min-width:190px">${x.t}: ${x.h}</label>${
+    avail(me,r)>0?`<input type="number" id="q${r}" step="0.1" min="0" aria-label="${x.t} marjinal maliyet"> <span class="note">$/MWh</span> <span id="f${r}" aria-live="polite"></span>`
+    :`<span class="note">Bu turda santraliniz üretemiyor.</span>`}</div>`).join("");
+}
+function check(){
+  R.forEach((x,r)=>{ const el=$("q"+r); if(!el) return; const f=$("f"+r), v=parseFloat(el.value.replace(",","."));
+    if(isNaN(v)){ f.className="fb bad"; f.textContent="Bir sayı yazın"; return; }
+    const t=mc(me,r);
+    if(Math.abs(v-t)<=0.6){ f.className="fb ok"; f.textContent="Doğru"; return; }
+    let hint="Yanlış. Formüldeki üç terimi tek tek kontrol edin.";
+    if(me.fuel && Math.abs(v-(me.fuel*(me.gas?x.gm:1)+me.vom+me.em*x.co2))<=0.6) hint="Yanlış. Yakıt fiyatını verime bölmeyi unuttunuz.";
+    else if(x.co2>0 && me.em>0 && Math.abs(v-(t-me.em*x.co2))<=0.6) hint="Yanlış. Karbon maliyetini eklemediniz.";
+    else if(me.gas && x.gm!==1 && Math.abs(v-mc(me,0))<=0.6) hint="Yanlış. Bu turda gaz fiyatı değişti.";
+    else if(Math.abs(v-(t-me.vom))<=0.6 && me.vom>0) hint="Yanlış. Değişken işletme giderini eklemediniz.";
+    f.className="fb bad"; f.textContent=hint; });
+}
+function renderSim(){
+  $("tabs").innerHTML=R.map((x,i)=>`<button role="tab" aria-selected="${i===round}" data-r="${i}">${x.t}</button>`).join("");
+  const x=R[round];
+  $("scen").innerHTML=`<span class="chip"><b>${x.h}</b></span><span class="chip">Talep ${fmt(x.demand)} MW</span><span class="chip">Rüzgâr ${fmt(avail(P[0],round))} MW</span><span class="chip">Güneş ${fmt(avail(P[1],round))} MW</span><span class="chip">Gaz ${fmt(33*x.gm,1)} $/MWh</span><span class="chip">Karbon ${fmt(x.co2)} $/ton</span>`;
+  const off=avail(me,round)<=0;
+  $("bid").disabled=off; $("btnRun").disabled=off;
+  $("res").innerHTML=off?`<div class="out">Bu turda santraliniz üretemiyor. Derste bu turu izleyecek ve fiyatı kimin belirleyeceğini tahmin edeceksiniz. Başka bir tur seçin.</div>`:"";
+  draw(null);
+}
+function rivalBids(){
+  const s=$("strat").checked, b={};
+  P.forEach(p=>{ if(p===me) return; const m=mc(p,round); const k=s?1.05+Math.random()*0.2:0.98+Math.random()*0.06; b[p.id]=Math.round(m*k*2)/2; });
+  return b;
+}
+function run(){
+  const v=parseFloat($("bid").value.replace(",","."));
+  if(isNaN(v)||v<0||v>CAP){ $("res").innerHTML=`<div class="out">0 ile 250 arasında bir teklif yazın.</div>`; return; }
+  const bids=rivalBids(); bids[me.id]=v;
+  const m=clearMarket(round,bids), a=m.acc[me.id]||0, c=mc(me,round), pr=a*(m.price-c);
+  const alt=Object.assign({},bids); alt[me.id]=Math.round(c*2)/2; const m2=clearMarket(round,alt), pr2=(m2.acc[me.id]||0)*(m2.price-c);
+  let msg;
+  if(a<=0) msg="Teklifiniz piyasa fiyatının üstünde kaldı. Bu saatte üretim yapmadınız.";
+  else if(pr<-0.5) msg="Kabul edildiniz ama zarar ettiniz: piyasa fiyatı marjinal maliyetinizin altında.";
+  else if(m.price===v) msg="Fiyatı siz belirlediniz: kabul edilen son santral sizsiniz.";
+  else msg="Kabul edildiniz ve kendi teklifinizden değil, piyasa fiyatından sattınız.";
+  $("res").innerHTML=`<div class="out"><b class="big">${fmt(m.price,1)} $/MWh</b>piyasa fiyatı. ${msg}<br>Kabul edilen: <b>${fmt(a)} MW</b> / ${fmt(avail(me,round))} MW · Tur kârınız: <b>${fmt(pr)} $</b><br><span class="note">Tam maliyetinizi teklif etseydiniz bu rakiplere karşı kârınız ${fmt(pr2)} $ olurdu.</span></div>`;
+  draw(m);
+}
+function draw(m){
+  const W=760,H=320,L=50,Rt=16,T=22,B=42,d=R[round].demand;
+  const offers=m?m.offers:[], sup=offers.reduce((s,o)=>s+o.q,0);
+  const xMax=Math.max(sup,d)*1.06, maxB=offers.reduce((s,o)=>Math.max(s,o.b),0);
+  const yMax=Math.max(60,Math.ceil(Math.max(maxB,m?m.price:0)*1.2/20)*20);
+  const x=v=>L+v/xMax*(W-L-Rt), y=v=>H-B-v/yMax*(H-T-B);
+  let g="";
+  for(let v=0;v<=yMax;v+=yMax/4) g+=`<line x1="${L}" x2="${W-Rt}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text class="ax" x="${L-8}" y="${y(v)+4}" text-anchor="end">${fmt(v)}</text>`;
+  const xs=Math.ceil(xMax/6/50)*50;
+  for(let v=0;v<=xMax;v+=xs) g+=`<text class="ax" x="${x(v)}" y="${H-B+18}" text-anchor="middle">${fmt(v)}</text>`;
+  g+=`<text class="ax" x="${(L+W-Rt)/2}" y="${H-6}" text-anchor="middle">Kümülatif arz (MW)</text><text class="ax" x="12" y="${T-8}">$/MWh</text>`;
+  if(!m) g+=`<text x="${(L+W)/2}" y="${H/2}" text-anchor="middle" style="fill:var(--muted)">Teklifinizi yazıp piyasayı çalıştırın</text>`;
+  let cum=0;
+  offers.forEach(o=>{ const x0=x(cum), w=x(cum+o.q)-x0, top=Math.min(y(o.b),H-B-3), a=m.acc[o.p.id]||0, mine=o.p===me;
+    g+=`<rect x="${x0}" y="${top}" width="${Math.max(w-1,1)}" height="${H-B-top}" fill="${o.p.c}" opacity="${a>0?1:0.28}"${mine?' stroke="var(--ink)" stroke-width="3"':""}><title>${o.p.name}: ${fmt(o.q)} MW, ${fmt(o.b,1)} $/MWh</title></rect>`;
+    if(w>44||mine) g+=`<text x="${x0+w/2}" y="${top-6}" text-anchor="middle" style="font-size:12px;${mine?"font-weight:600":""}">${mine?"Siz":(o.p.short||o.p.name)}</text>`;
+    cum+=o.q; });
+  g+=`<line x1="${x(d)}" x2="${x(d)}" y1="${T}" y2="${H-B}" stroke="var(--ink)" stroke-width="2"/><text x="${x(d)-6}" y="${T+12}" text-anchor="end" style="font-weight:600">Talep ${fmt(d)} MW</text>`;
+  if(m) g+=`<line x1="${L}" x2="${W-Rt}" y1="${y(m.price)}" y2="${y(m.price)}" stroke="var(--mustard)" stroke-width="2.5" stroke-dasharray="7 5"/>`;
+  g+=`<line x1="${L}" x2="${W-Rt}" y1="${H-B}" y2="${H-B}" stroke="var(--muted)"/>`;
+  $("chart").innerHTML=g;
+}
+$("plant").addEventListener("change",e=>{ me=P.find(p=>p.id===e.target.value); try{localStorage.setItem("piyasa-santral",me.id);}catch(_){ } renderCard(); renderQuiz(); renderSim(); });
+$("btnCheck").addEventListener("click",check);
+$("tabs").addEventListener("click",e=>{ const b=e.target.closest("button"); if(b){ round=+b.dataset.r; renderSim(); }});
+$("btnRun").addEventListener("click",run);
+$("bid").addEventListener("keydown",e=>{ if(e.key==="Enter") run(); });
+// ---- çevrimiçi teslim ve yatırım hesaplayıcısı
+const HOCA="mehmetsahin@comu.edu.tr";
+document.querySelectorAll(".mailto").forEach(e=>e.textContent=HOCA);
+const val=id=>{const e=$(id);return e?e.value.trim():"";};
+const num=id=>parseFloat(val(id).replace(",","."));
+function saveAll(){ try{ const o={}; document.querySelectorAll("[data-save]").forEach(e=>o[e.id]=e.value); localStorage.setItem("piyasa-taslak",JSON.stringify(o)); }catch(_){} }
+function loadAll(){ try{ const o=JSON.parse(localStorage.getItem("piyasa-taslak")||"{}"); Object.keys(o).forEach(k=>{ const e=$(k); if(e) e.value=o[k]; }); }catch(_){} }
+function renderBids(){
+  $("o1bids").innerHTML=R.map((x,r)=>avail(me,r)>0?`<div class="fld"><label for="o1b${r}">${x.t} (${x.h}): teklifiniz ve iki cümlelik gerekçesi</label><div class="row"><input type="number" id="o1b${r}" data-save step="0.5" min="0" max="250" aria-label="${x.t} teklif"><span class="note">$/MWh</span></div><input type="text" id="o1g${r}" data-save style="margin-top:6px" aria-label="${x.t} gerekçe"></div>`:"").join("");
+}
+function odev1(){
+  let t=`ÖDEV 1 – Piyasa Oyunu\nGrup: ${val("o1grup")}\nSantral: ${me.name}\nÜyeler: ${val("o1uye")}\n\nMARJİNAL MALİYET VE TEKLİF\n`;
+  R.forEach((x,r)=>{ t+= avail(me,r)>0 ? `${x.t} – ${x.h}: marjinal maliyet ${val("q"+r)||"?"} $/MWh, teklif ${val("o1b"+r)||"?"} $/MWh. Gerekçe: ${val("o1g"+r)}\n` : `${x.t} – ${x.h}: üretim yok\n`; });
+  t+=`\nHESAP ADIMLARI\n${val("o1hesap")}\n\nBEKLENTİ\n${val("o1bekle")}\n\nFİYATI BELİRLEYEN SANTRAL TAHMİNİ\n${val("o1tahmin")}\n`;
+  return t;
+}
+function irr(inv,cf,n){ if(cf*n<=inv) return null; let lo=1e-6,hi=5; const f=r=>-inv+cf*(1-Math.pow(1+r,-n))/r; for(let i=0;i<80;i++){ const m=(lo+hi)/2; if(f(m)>0) lo=m; else hi=m; } return (lo+hi)/2; }
+function calc(price,mm,r){
+  const n=20, inv=me.cap*me.capex, gen=me.cap*8760*me.cf/100, fom=me.cap*me.fom/1000;
+  const net=gen*(price-mm)/1e6-fom, ann=(1-Math.pow(1+r,-n))/r;
+  return {inv,gen,net,npv:-inv+net*ann,irr:net>0?irr(inv,net,n):null,lcoe:(inv/ann+gen*mm/1e6+fom)*1e6/gen,pay:net>0?inv/net:null};
+}
+function renderCalc(){
+  const p=num("yfiyat"), m=num("ymm"), r=num("yisk")/100;
+  if(isNaN(p)||isNaN(m)||isNaN(r)||r<=0){ $("ykpi").innerHTML=`<div><span>Sonuçlar</span><b>–</b></div>`; $("yduy").innerHTML=""; return null; }
+  const c=calc(p,m,r), k=(l,v)=>`<div><span>${l}</span><b>${v}</b></div>`;
+  $("ykpi").innerHTML=k("Toplam yatırım",fmt(c.inv)+" mn $")+k("Yıllık net nakit akışı",fmt(c.net,1)+" mn $")+k("NBD",fmt(c.npv,1)+" mn $")+k("İVO",c.irr===null?"Hesaplanamaz":"%"+fmt(c.irr*100,1))+k("LCOE",fmt(c.lcoe,1)+" $/MWh")+k("Geri ödeme",c.pay===null?"Geri ödemez":fmt(c.pay,1)+" yıl");
+  const a=calc(60,m,r), b=calc(p,m,0.14), row=(l,x)=>`<tr><td>${l}</td><td class="n">${fmt(x.npv,1)}</td><td class="n">${x.irr===null?"–":"%"+fmt(x.irr*100,1)}</td></tr>`;
+  let h=`<tr><th>Duyarlılık</th><th class="n">NBD (mn $)</th><th class="n">İVO</th></tr>`+row("Sizin varsayımınız",c)+row("Satış fiyatı 60 $/MWh olursa",a)+row("İskonto oranı %14 olursa",b);
+  if(me.em>0) h+=row("50 $/ton karbon fiyatı eklenirse",calc(p,m+me.em*50,r));
+  $("yduy").innerHTML=h;
+  return {c,a,b,p,m,r};
+}
+function odev2(){
+  const x=renderCalc();
+  let t=`ÖDEV 2 – Yatırım Notu\nGrup: ${val("o1grup")}\nSantral: ${me.name}\nÜyeler: ${val("o1uye")}\n\nKARAR\n${val("o2karar")}\n\nTEMEL SONUÇLAR\n`;
+  t+= x ? `Satış fiyatı ${fmt(x.p,1)} $/MWh, marjinal maliyet ${fmt(x.m,1)} $/MWh, iskonto %${fmt(x.r*100,1)}\nNBD ${fmt(x.c.npv,1)} mn $ | İVO ${x.c.irr===null?"hesaplanamaz":"%"+fmt(x.c.irr*100,1)} | LCOE ${fmt(x.c.lcoe,1)} $/MWh | Geri ödeme ${x.c.pay===null?"yok":fmt(x.c.pay,1)+" yıl"}\nFiyat 60 olursa NBD ${fmt(x.a.npv,1)} mn $ | İskonto %14 olursa NBD ${fmt(x.b.npv,1)} mn $\n` : "(hesaplayıcı doldurulmadı)\n";
+  t+=`\nDUYARLILIK YORUMU\n${val("o2duy")}\n\nÜÇ RİSK VE ÖNLEM\n${val("o2risk")}\n\nKOŞUL\n${val("o2kosul")}\n`;
+  return t;
+}
+function refresh(){ $("o1prev").textContent=odev1(); $("o2prev").textContent=odev2(); }
+function send(no,fn,msg){ const g=val("o1grup"); if(!g||!val("o1uye")){ $(msg).textContent="Önce grup numarasını ve üyeleri yazın."; return; }
+  location.href="mailto:"+HOCA+"?subject="+encodeURIComponent(`Enerji dersi Ödev ${no} – Grup ${g} – ${me.name}`)+"&body="+encodeURIComponent(fn());
+  $(msg).textContent="E-posta taslağı açıldı. Göndermeyi e-posta programınızda tamamlayın."; }
+function copy(fn,msg){ const t=fn(); (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{$(msg).textContent="Metin kopyalandı.";}).catch(()=>{$(msg).textContent="Kopyalanamadı. Kutudaki metni elle seçip kopyalayın.";}); }
+document.addEventListener("input",e=>{ if(e.target.matches("[data-save]")) saveAll(); refresh(); });
+$("o1mail").addEventListener("click",()=>send(1,odev1,"o1msg")); $("o1copy").addEventListener("click",()=>copy(odev1,"o1msg"));
+$("o2mail").addEventListener("click",()=>send(2,odev2,"o2msg")); $("o2copy").addEventListener("click",()=>copy(odev2,"o2msg"));
+$("btnPrint").addEventListener("click",()=>window.print());
+$("plant").addEventListener("change",()=>{ renderBids(); loadAll(); refresh(); });
+renderCard(); renderQuiz(); renderSim(); renderBids(); loadAll(); refresh();
+</script>
+</body>
+</html>

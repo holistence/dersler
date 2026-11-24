@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gün Öncesi Piyasası Oyunu · Sınıf ekranı</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Düzen: üstte tur seçimi ve senaryo, ortada liyakat sırası grafiği, altta teklif tablosu. Sınıfta projeksiyon için büyük rakamlar. */
+:root{
+  --bg:#f3f5f4; --panel:#ffffff; --ink:#14262b; --muted:#5b6d70; --line:#d4dcda;
+  --accent:#0b6e75; --price:#c2410c; --good:#1f7a3d; --bad:#b3261e;
+  --display:"Archivo","Arial Narrow",Arial,sans-serif; --body:"IBM Plex Sans",system-ui,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1b1e; --panel:#172629; --ink:#e6eeec; --muted:#9db0b1; --line:#2c4044;
+  --accent:#5cc4c9; --price:#ff9a5c; --good:#6fd08c; --bad:#ff8a80; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0f1b1e; --panel:#172629; --ink:#e6eeec; --muted:#9db0b1; --line:#2c4044;
+  --accent:#5cc4c9; --price:#ff9a5c; --good:#6fd08c; --bad:#ff8a80; color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--display);font-weight:800;font-size:1.9rem;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:1.15rem;margin:0 0 8px}
+.sub{color:var(--muted);margin:4px 0 0;max-width:65ch}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 14px}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+.danger{color:var(--bad)}
+.scen{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:space-between}
+.scen p{margin:0;max-width:60ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.92rem;font-variant-numeric:tabular-nums}
+.chip b{font-weight:600}
+.result{display:flex;flex-wrap:wrap;gap:24px;align-items:baseline;margin-bottom:8px}
+.big{font-family:var(--display);font-weight:800;font-size:2.6rem;color:var(--price);font-variant-numeric:tabular-nums;line-height:1}
+.big small{font-size:1rem;font-weight:600;color:var(--muted)}
+.chartwrap{overflow-x:auto}
+svg{display:block;width:100%;min-width:640px;height:auto}
+svg text{font-family:var(--body);fill:var(--ink);font-size:13px}
+svg .ax{fill:var(--muted);font-size:12px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{font-weight:600;color:var(--muted);font-size:.88rem}
+th:nth-child(-n+2),td:nth-child(-n+2){text-align:left}
+td input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+td input.bid{width:92px;text-align:right;font-weight:600}
+td input.gname{width:140px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:8px;vertical-align:-1px}
+.pos{color:var(--good);font-weight:600}.neg{color:var(--bad);font-weight:600}
+.state{font-size:.82rem;border-radius:999px;padding:2px 10px;border:1px solid currentColor}
+.state.in{color:var(--good)}.state.out{color:var(--muted)}.state.part{color:var(--price)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
+.note{color:var(--muted);font-size:.9rem;margin:8px 0 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:10px;padding:12px;border-top:5px solid var(--c)}
+.card h3{margin:0 0 6px;font-family:var(--display);font-size:1rem}
+.card dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:.92rem}
+.card dt{color:var(--muted)}.card dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.formula{font-weight:600;margin:0 0 12px}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Gün Öncesi Piyasası Oyunu</h1>
+  <p class="sub">Sekiz grup, sekiz santral, dört tur. Her grup bir saatlik üretimi için fiyat teklifi verir. Teklifler ucuzdan pahalıya sıralanır, talebi karşılayan son santralin teklifi herkesin satış fiyatı olur.</p>
+</header>
+
+<div class="tabs" role="tablist" id="tabs"></div>
+
+<section class="panel scen" id="scen"></section>
+
+<section class="panel">
+  <div class="result" id="result"></div>
+  <div class="chartwrap"><svg id="chart" viewBox="0 0 900 360" role="img" aria-label="Liyakat sırası grafiği"></svg></div>
+</section>
+
+<section class="panel">
+  <h2>Teklifler ve sonuçlar</h2>
+  <div class="tablewrap"><table id="tbl"></table></div>
+  <div class="actions">
+    <button class="primary" id="btnClear">Piyasayı kapat</button>
+    <button id="btnFill">Boş santralleri maliyetinden teklif ettir</button>
+    <button id="btnWipe">Bu turun tekliflerini sil</button>
+    <button id="btnCost" aria-pressed="false">Gerçek maliyetleri göster</button>
+    <button class="danger" id="btnReset">Oyunu sıfırla</button>
+  </div>
+  <p class="note">Her grup, o turda kullanılabilir kapasitesinin tamamını tek fiyattan teklif eder. Tavan fiyat 250 $/MWh. Grubu olmayan santraller için "Boş santralleri maliyetinden teklif ettir" düğmesi, teklifi boş kalan her santrale o turun marjinal maliyetini yazar. Arz talebi karşılamazsa fiyat tavana çıkar. Tur kârı = (piyasa fiyatı − marjinal maliyet) × kabul edilen MW.</p>
+</section>
+
+<section class="panel">
+  <h2>Santral kartları</h2>
+  <p class="formula">Marjinal maliyet = yakıt fiyatı ÷ verim + değişken işletme gideri + emisyon × karbon fiyatı</p>
+  <div class="cards" id="cards"></div>
+  <p class="note">Rakamlar öğretim amaçlı yaklaşık değerlerdir, gerçek santral verisi değildir.</p>
+</section>
+</main>
+
+<script>
+const CAP = 250;
+const P = [
+ {id:"ruz", name:"Rüzgâr", cap:100, fuel:0,  eff:1,   vom:0, em:0,    gas:false, capex:1.3, c:"#1a9e96"},
+ {id:"gun", name:"Güneş", cap:60,  fuel:0,  eff:1,   vom:0, em:0,    gas:false, capex:0.7, c:"#e0a100"},
+ {id:"hid", name:"Hidroelektrik", cap:80, fuel:0, eff:1, vom:3, em:0, gas:false, capex:2.0, c:"#2f6fd0"},
+ {id:"jeo", name:"Jeotermal", cap:40, fuel:0, eff:1,  vom:5, em:0,    gas:false, capex:4.0, c:"#a2459b"},
+ {id:"lin", name:"Linyit", cap:150, fuel:12, eff:0.35, vom:4, em:1.00, gas:false, capex:1.8, c:"#7a5a3c"},
+ {id:"itk", name:"İthal kömür", cap:150, fuel:15, eff:0.40, vom:4, em:0.85, gas:false, capex:1.6, c:"#6b7780"},
+ {id:"gaz", name:"Doğal gaz (kombine çevrim)", short:"Gaz KÇ", cap:120, fuel:33, eff:0.55, vom:3, em:0.37, gas:true, capex:0.9, c:"#e2702a"},
+ {id:"pik", name:"Gaz pik santrali", short:"Gaz pik", cap:60, fuel:33, eff:0.35, vom:4, em:0.55, gas:true, capex:0.5, c:"#c8342b"}
+];
+const R = [
+ {t:"1. Tur", h:"Olağan bir öğle saati", s:"Hafif rüzgâr var, güneş açık. Yakıt fiyatları normal, karbon fiyatı yok.", demand:450, av:{ruz:40,gun:45}, gm:1, co2:0},
+ {t:"2. Tur", h:"Rüzgârsız kış akşamı", s:"Rüzgâr durdu, güneş battı. Talep akşam zirvesinde.", demand:500, av:{ruz:0,gun:0}, gm:1, co2:0},
+ {t:"3. Tur", h:"Gaz krizi", s:"Doğal gaz fiyatı yüzde 50 arttı. Soğuk hava talebi yükseltti, rüzgâr zayıf.", demand:580, av:{ruz:20,gun:0}, gm:1.5, co2:0},
+ {t:"4. Tur", h:"Karbon fiyatı geldi", s:"Ton başına 50 dolar karbon fiyatı yürürlükte. Gaz fiyatı normale döndü, hava rüzgârlı ve güneşli.", demand:430, av:{ruz:90,gun:50}, gm:1, co2:50}
+];
+const fmt = (n,d=0)=> n.toLocaleString("tr-TR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const avail = (p,r)=> (R[r].av[p.id]!==undefined ? R[r].av[p.id] : p.cap);
+const mc = (p,r)=> (p.fuel ? p.fuel*(p.gas?R[r].gm:1)/p.eff : 0) + p.vom + p.em*R[r].co2;
+
+let S = {r:0, bids:[{},{},{},{}], done:[false,false,false,false], names:{}, cost:false, example:true};
+function fresh(){
+  const s = {r:0, bids:[{},{},{},{}], done:[true,false,false,false], names:{}, cost:false, example:true};
+  P.forEach((p,i)=>{ s.names[p.id]="Grup "+(i+1); s.bids[0][p.id]=Math.round(mc(p,0)*2)/2; });
+  return s;
+}
+function load(){ try{ const j=localStorage.getItem("gop-oyunu"); if(j){ S=JSON.parse(j); return; } }catch(e){} S=fresh(); }
+function save(){ try{ localStorage.setItem("gop-oyunu", JSON.stringify(S)); }catch(e){} }
+
+function clearMarket(r){
+  const offers = P.map(p=>({p, q:avail(p,r), b:S.bids[r][p.id]}))
+    .filter(o=>o.q>0 && typeof o.b==="number" && !isNaN(o.b))
+    .sort((a,b)=>a.b-b.b);
+  let rem = R[r].demand, price = 0, i = 0;
+  const acc = {};
+  while(i<offers.length){
+    let j=i, tot=0;
+    while(j<offers.length && offers[j].b===offers[i].b){ tot+=offers[j].q; j++; }
+    const take = Math.min(tot, rem);
+    for(let k=i;k<j;k++) acc[offers[k].p.id] = tot>0 ? offers[k].q*take/tot : 0;
+    if(take>0) price = offers[i].b;
+    rem -= take; i=j;
+  }
+  const short = rem>0.001;
+  if(short) price = CAP;
+  return {offers, acc, price, short, missing:rem};
+}
+function profits(r){
+  const m = clearMarket(r), out={};
+  P.forEach(p=>{ out[p.id] = (m.acc[p.id]||0) * (m.price - mc(p,r)); });
+  return out;
+}
+function totals(){
+  const t={}; P.forEach(p=>t[p.id]=0);
+  R.forEach((_,r)=>{ if(S.done[r]){ const pr=profits(r); P.forEach(p=>t[p.id]+=pr[p.id]); } });
+  return t;
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function render(){
+  const r=S.r, rd=R[r];
+  document.getElementById("tabs").innerHTML = R.map((x,i)=>
+    `<button role="tab" aria-selected="${i===r}" data-r="${i}">${x.t}${S.done[i]?" ✓":""}</button>`).join("");
+  document.getElementById("scen").innerHTML =
+    `<div><h2>${rd.h}</h2><p>${rd.s}</p>${S.example&&r===0?'<p class="note">Tabloda örnek teklifler var: herkes kendi marjinal maliyetini teklif etmiş. Oyuna başlarken "Bu turun tekliflerini sil" düğmesine basın.</p>':''}</div>
+     <div class="facts"><span class="chip">Talep <b>${fmt(rd.demand)} MW</b></span>
+     <span class="chip">Rüzgâr <b>${fmt(avail(P[0],r))} MW</b></span><span class="chip">Güneş <b>${fmt(avail(P[1],r))} MW</b></span>
+     <span class="chip">Gaz fiyatı <b>${fmt(33*rd.gm,1)} $/MWh</b></span><span class="chip">Karbon <b>${fmt(rd.co2)} $/ton</b></span></div>`;
+
+  const m = clearMarket(r), done=S.done[r], pr=profits(r), tot=totals();
+  const res = document.getElementById("result");
+  if(done){
+    const setter = m.short ? "Arz yetersiz, tavan fiyat" :
+      "Fiyatı belirleyen: " + m.offers.filter(o=>o.b===m.price && m.acc[o.p.id]>0).map(o=>esc(S.names[o.p.id])+" ("+(o.p.short||o.p.name)+")").join(", ");
+    res.innerHTML = `<div class="big">${fmt(m.price,1)} <small>$/MWh piyasa takas fiyatı</small></div><div>${setter}${m.short?`. Karşılanamayan talep ${fmt(m.missing)} MW.`:""}</div>`;
+  } else {
+    const n = P.filter(p=>avail(p,r)>0 && typeof S.bids[r][p.id]==="number").length, need=P.filter(p=>avail(p,r)>0).length;
+    res.innerHTML = `<div class="big" style="color:var(--muted)">? <small>$/MWh</small></div><div>${n} / ${need} teklif girildi. Hepsi girilince piyasayı kapatın.</div>`;
+  }
+  drawChart(m, done);
+
+  let h = `<tr><th>Grup</th><th>Santral</th><th>Kullanılabilir MW</th><th>Teklif ($/MWh)</th><th>Kabul edilen MW</th><th>Durum</th><th>Tur kârı ($)</th><th>Toplam kâr ($)</th>${S.cost?"<th>Marjinal maliyet</th>":""}</tr>`;
+  P.forEach(p=>{
+    const q=avail(p,r), b=S.bids[r][p.id], a=m.acc[p.id]||0;
+    const st = !done ? "" : a>=q-0.001&&q>0 ? '<span class="state in">Kabul</span>' : a>0 ? '<span class="state part">Kısmi</span>' : '<span class="state out">Dışarıda</span>';
+    const cls = v=> v>0.5?"pos":v<-0.5?"neg":"";
+    h += `<tr><td><input class="gname" id="n-${p.id}" data-n="${p.id}" value="${esc(S.names[p.id])}" aria-label="Grup adı"></td>
+      <td><span class="sw" style="background:${p.c}"></span>${p.name}</td><td>${fmt(q)}</td>
+      <td>${q>0?`<input class="bid" id="b-${p.id}" data-b="${p.id}" type="number" min="0" max="${CAP}" step="0.5" value="${typeof b==="number"?b:""}" aria-label="${p.name} teklifi">`:"Üretim yok"}</td>
+      <td>${done?fmt(a):"–"}</td><td>${st}</td>
+      <td class="${done?cls(pr[p.id]):""}">${done?fmt(pr[p.id]):"–"}</td><td class="${cls(tot[p.id])}">${fmt(tot[p.id])}</td>
+      ${S.cost?`<td>${fmt(mc(p,r),1)}</td>`:""}</tr>`;
+  });
+  document.getElementById("tbl").innerHTML = h;
+  document.getElementById("btnClear").textContent = done ? "Turu yeniden aç" : "Piyasayı kapat";
+  const bc=document.getElementById("btnCost"); bc.textContent = S.cost?"Gerçek maliyetleri gizle":"Gerçek maliyetleri göster"; bc.setAttribute("aria-pressed",S.cost);
+}
+
+function drawChart(m, done){
+  const W=900,H=360,L=56,Rt=20,T=24,B=44, r=S.r, d=R[r].demand;
+  const sup = m.offers.reduce((s,o)=>s+o.q,0);
+  const xMax = Math.max(sup,d)*1.06, maxB = m.offers.reduce((s,o)=>Math.max(s,o.b),0);
+  const yMax = Math.max(60, Math.ceil(Math.max(maxB, done?m.price:0)*1.2/20)*20);
+  const x=v=>L+v/xMax*(W-L-Rt), y=v=>H-B-v/yMax*(H-T-B);
+  let g="";
+  for(let v=0; v<=yMax; v+=yMax/4){ g+=`<line x1="${L}" x2="${W-Rt}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text class="ax" x="${L-8}" y="${y(v)+4}" text-anchor="end">${fmt(v)}</text>`; }
+  const xs = Math.ceil(xMax/6/50)*50;
+  for(let v=0; v<=xMax; v+=xs){ g+=`<text class="ax" x="${x(v)}" y="${H-B+18}" text-anchor="middle">${fmt(v)}</text>`; }
+  g+=`<text class="ax" x="${(L+W-Rt)/2}" y="${H-6}" text-anchor="middle">Kümülatif arz (MW)</text><text class="ax" x="14" y="${T-8}">$/MWh</text>`;
+  if(!m.offers.length) g+=`<text x="${(L+W)/2}" y="${H/2}" text-anchor="middle" style="fill:var(--muted)">Teklifler girildikçe arz eğrisi burada oluşur</text>`;
+  let cum=0;
+  m.offers.forEach(o=>{
+    const x0=x(cum), w=x(cum+o.q)-x0, top=Math.min(y(o.b), H-B-3), a=m.acc[o.p.id]||0;
+    const op = !done ? 0.85 : a>0 ? 1 : 0.28;
+    g+=`<rect x="${x0}" y="${top}" width="${Math.max(w-1,1)}" height="${H-B-top}" fill="${o.p.c}" opacity="${op}"><title>${esc(S.names[o.p.id])} – ${o.p.name}: ${fmt(o.q)} MW, ${fmt(o.b,1)} $/MWh</title></rect>`;
+    if(w>46) g+=`<text x="${x0+w/2}" y="${top-6}" text-anchor="middle" style="font-size:12px">${o.p.short||o.p.name}</text>`;
+    cum+=o.q;
+  });
+  g+=`<line x1="${x(d)}" x2="${x(d)}" y1="${T}" y2="${H-B}" stroke="var(--ink)" stroke-width="2"/><text x="${x(d)-6}" y="${T+12}" text-anchor="end" style="font-weight:600">Talep ${fmt(d)} MW</text>`;
+  if(done){ g+=`<line x1="${L}" x2="${W-Rt}" y1="${y(m.price)}" y2="${y(m.price)}" stroke="var(--price)" stroke-width="2.5" stroke-dasharray="7 5"/><text x="${L+8}" y="${y(m.price)-7}" style="fill:var(--price);font-weight:600">${fmt(m.price,1)} $/MWh</text>`; }
+  g+=`<line x1="${L}" x2="${W-Rt}" y1="${H-B}" y2="${H-B}" stroke="var(--muted)"/>`;
+  document.getElementById("chart").innerHTML=g;
+}
+
+function cards(){
+  document.getElementById("cards").innerHTML = P.map((p,i)=>`<div class="card" style="--c:${p.c}"><h3>${i+1}. ${p.name}</h3><dl>
+   <dt>Kurulu güç</dt><dd>${p.cap} MW</dd>
+   <dt>Yakıt fiyatı</dt><dd>${p.fuel?fmt(p.fuel)+" $/MWh ısıl":"Yok"}</dd>
+   <dt>Verim</dt><dd>${p.fuel?"%"+fmt(p.eff*100):"–"}</dd>
+   <dt>Değişken işletme gideri</dt><dd>${p.vom} $/MWh</dd>
+   <dt>Emisyon</dt><dd>${fmt(p.em,2)} tCO₂/MWh</dd>
+   <dt>Yatırım maliyeti</dt><dd>${fmt(p.capex,1)} milyon $/MW</dd></dl></div>`).join("");
+}
+
+document.getElementById("tabs").addEventListener("click",e=>{ const b=e.target.closest("button"); if(b){ S.r=+b.dataset.r; save(); render(); }});
+document.getElementById("tbl").addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.n){ S.names[t.dataset.n]=t.value.trim()||"Grup"; }
+  if(t.dataset.b){ const v=parseFloat(t.value); if(isNaN(v)) delete S.bids[S.r][t.dataset.b]; else S.bids[S.r][t.dataset.b]=Math.min(CAP,Math.max(0,v)); }
+  save(); render();
+});
+document.getElementById("btnClear").addEventListener("click",()=>{ S.done[S.r]=!S.done[S.r]; save(); render(); });
+document.getElementById("btnWipe").addEventListener("click",()=>{ S.bids[S.r]={}; S.done[S.r]=false; if(S.r===0) S.example=false; save(); render(); });
+document.getElementById("btnFill").addEventListener("click",()=>{ P.forEach(p=>{ if(avail(p,S.r)>0 && typeof S.bids[S.r][p.id]!=="number") S.bids[S.r][p.id]=Math.round(mc(p,S.r)*2)/2; }); save(); render(); });
+document.getElementById("btnCost").addEventListener("click",()=>{ S.cost=!S.cost; save(); render(); });
+let armed=false;
+document.getElementById("btnReset").addEventListener("click",e=>{
+  if(!armed){ armed=true; e.target.textContent="Emin misiniz? Tüm turlar silinir"; setTimeout(()=>{armed=false; e.target.textContent="Oyunu sıfırla";},4000); return; }
+  armed=false; e.target.textContent="Oyunu sıfırla"; S=fresh(); save(); render();
+});
+load(); cards(); render();
+</script>
+</body>
+</html>
