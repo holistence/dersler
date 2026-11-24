@@ -33,7 +33,8 @@
   ["Tarihsel evrim: kuruşluk gazeteden kablolu TV'ye","s. 91–97"],
   ["Ekonomik döngüler, sistemler ve popüler kültür","s. 98–118"],
   ["Geleceğin medyası: yaratıcı yıkım ve yapay zekâ","s. 119–128"]]},
-{"code":"EN","slug":"enerji-yonetimi","name":"Enerji Kaynakları, Yatırımı ve Yönetimi","src":"Ders kitabı: Enerji Kaynakları, Yatırımı ve Yönetimi: Soru ve Yanıtlarla Uygulamalı Bir Rehber (Holistence, 2025)",
+{"code":"EN","slug":"enerji-yonetimi",
+ "extras":[{"href":"piyasa-oyunu/","title":"Uygulama: Piyasa Oyunu ve Yatırım Komitesi","note":"Hafta 07, 09 ve 10 · ödev yönergesi, hesap sınaması ve antrenman piyasası"}],"name":"Enerji Kaynakları, Yatırımı ve Yönetimi","src":"Ders kitabı: Enerji Kaynakları, Yatırımı ve Yönetimi: Soru ve Yanıtlarla Uygulamalı Bir Rehber (Holistence, 2025)",
  "weeks":[
   ["Enerjiye genel bakış: kaynaklar, dönüşüm verimliliği, kapasite ve yük faktörü","s. 3–13"],
   ["Enerji güvenliği (4A), değer zinciri, talep esnekliği, piyasa modelleri","s. 14–20"],

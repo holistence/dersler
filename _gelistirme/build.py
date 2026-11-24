@@ -31,11 +31,12 @@ for c in C['courses']:
         ready = (repo/f"hafta-{i:02d}/index.html").exists()
         cell = f'<a href="hafta-{i:02d}/">{t}</a>' if ready else t
         rows.append(f'<li class="{"ok" if ready else ""}"><span>Hafta {i:02d}</span>{cell}<small>{ref}</small></li>')
+    extras = "".join(f'<p class="ekstra"><a href="{e["href"]}">{e["title"]}</a><small>{e["note"]}</small></p>' for e in c.get("extras", []))
     (repo/'index.html').write_text(f'''<!doctype html>
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{c["name"]} · {C["author"]}</title>
 {FONTS}<link rel="stylesheet" href="../assets/ders.css">
-<style>ol{{list-style:none;padding:0;margin:24px 0}}li{{display:grid;grid-template-columns:90px minmax(0,1fr);gap:4px 14px;padding:12px 0;border-top:1px solid var(--line);color:var(--muted)}}li span{{font-family:var(--f-mono);font-size:.8rem;padding-top:3px}}li small{{grid-column:2;font-size:.8rem}}li.ok{{color:var(--ink)}}</style></head>
-<body><main class="wrap"><p class="eyebrow">{c["code"]} · 14 hafta</p><h1>{c["name"]}</h1><p>{c["src"]}</p><ol>{"".join(rows)}</ol>
+<style>ol{{list-style:none;padding:0;margin:24px 0}}li{{display:grid;grid-template-columns:90px minmax(0,1fr);gap:4px 14px;padding:12px 0;border-top:1px solid var(--line);color:var(--muted)}}li span{{font-family:var(--f-mono);font-size:.8rem;padding-top:3px}}li small{{grid-column:2;font-size:.8rem}}li.ok{{color:var(--ink)}}.ekstra{{background:var(--mustard-soft);border-left:4px solid var(--mustard);border-radius:0 10px 10px 0;padding:12px 16px;margin:20px 0 0}}.ekstra a{{font-weight:600}}.ekstra small{{display:block;color:var(--muted);font-size:.8rem}}</style></head>
+<body><main class="wrap"><p class="eyebrow">{c["code"]} · 14 hafta</p><h1>{c["name"]}</h1><p>{c["src"]}</p>{extras}<ol>{"".join(rows)}</ol>
 <p class="note">{C["author"]} · Çanakkale Onsekiz Mart Üniversitesi</p></main></body></html>
 ''')
 
